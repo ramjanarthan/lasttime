@@ -8,15 +8,26 @@
 import SwiftUI
 
 struct ContentView: View {
+    @State var isRecording = false
+    @State var transcription = ""
+  
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+            Circle()
+                .fill(isRecording ? Color.red : Color.gray)
+                .frame(width: 30, height: 100)
+            
+            
+            Button(isRecording ? "Stop" : "Record", systemImage: "mic") {
+                withAnimation {
+                    isRecording.toggle()
+                }
+            }
+            
+            Text(transcription)
         }
         .padding()
-    }                                                          
+    }
 }
 
 #Preview {
