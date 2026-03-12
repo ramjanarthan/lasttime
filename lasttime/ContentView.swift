@@ -8,23 +8,40 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State var isRecording = false
-    @State var transcription = ""
-  
+    @State private var viewModel = SpeechToTextViewModel()
+    
+    
     var body: some View {
         VStack {
             Circle()
-                .fill(isRecording ? Color.red : Color.gray)
+                .fill(viewModel.model.isRecording ? Color.red : Color.gray)
                 .frame(width: 30, height: 100)
             
             
-            Button(isRecording ? "Stop" : "Record", systemImage: "mic") {
+            Button(viewModel.model.isRecording ? "Stop" : "Record", systemImage: "mic") {
                 withAnimation {
-                    isRecording.toggle()
+                    viewModel.toggleRecording()
                 }
             }
             
-            Text(transcription)
+            ScrollView {
+                VStack(alignment: .leading, spacing: 10) {
+                    if !viewModel.model.displayText.isEmpty {
+                        Text(viewModel.model.displayText)
+                            .font(.body)
+                            .padding()
+                    } else {
+                        Text("Tap the mic to start recording..")
+                            .font(.body)
+                            .padding()
+                    }
+                }
+            }
+            
+            if let errorMessage = viewModel.errorMessage {
+                Text(errorMessage)
+                    .foregroundColor(.red)
+            }
         }
         .padding()
     }
