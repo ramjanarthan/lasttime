@@ -1,5 +1,5 @@
 //
-//  BufferManager.swift
+//  BufferConverter.swift
 //  lasttime
 //
 //  Created by Ram Janarthan on 11/3/26.
@@ -8,7 +8,7 @@
 import Foundation
 import AVFoundation
 
-class BufferManager {
+class BufferConverter {
     
     enum Error: Swift.Error {
         case failedToCreateConverter

@@ -19,11 +19,7 @@ class AudioManager {
     }
     
     func requestMicPermission() async -> Bool {
-        await withCheckedContinuation { continuation in
-            AVAudioApplication.requestRecordPermission() { granted in
-                continuation.resume(returning: granted)
-            }
-        }
+        return await AVAudioApplication.requestRecordPermission()
     }
     
     func startAudioStream(onBuffer: @escaping (AVAudioPCMBuffer) -> Void) throws {
