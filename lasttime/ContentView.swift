@@ -10,7 +10,6 @@ import SwiftUI
 struct ContentView: View {
     @State private var viewModel = SpeechToTextViewModel()
     
-    
     var body: some View {
         VStack {
             Circle()

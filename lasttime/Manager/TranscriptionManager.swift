@@ -7,6 +7,7 @@
 
 import Foundation
 import Speech
+import Accelerate
 
 class TranscriptionManager {
     
@@ -20,6 +21,7 @@ class TranscriptionManager {
     private var analyzer: SpeechAnalyzer?
     private var recogniserTask: Task<(), Error>?
     private var analyserFormat: AVAudioFormat?
+    private let processor = AudioProcessor()
     private var converter = BufferConverter()
     
     func requestSpeechPermission() async -> Bool {
@@ -30,6 +32,10 @@ class TranscriptionManager {
         }
         
         return status == .authorized
+    }
+    
+    func checkIfDeviceSupported() async -> Bool {
+        return SpeechTranscriber.isAvailable
     }
     
     func startTranscription(onResult: @escaping (String, Bool) -> Void) async throws {
@@ -65,6 +71,10 @@ class TranscriptionManager {
             throw TranscriptionError.processingError
         }
         
+        guard let buffer = processor.processAudioBuffer(buffer) else {
+            return
+        }
+
         let converted = try converter.convertBuffer(buffer, to: analyserFormat)
         inputBuilder.yield(AnalyzerInput(buffer: converted))
     }
