@@ -1,5 +1,5 @@
 //
-//  AudioProcessor.swift
+//  AudioFilter.swift
 //  lasttime
 //
 //  Created by Ram Janarthan on 13/3/26.
@@ -9,12 +9,12 @@ import Foundation
 import AVFoundation
 import Accelerate
 
-class AudioProcessor {
+class AudioFilter {
     private var silenceCounter = 0
-    private let silenceLimit = 10 // Number of quiet buffers to allow before stopping
-    private let rmsThreshold: Float = 0.025
+    private let silenceLimit = 15 // Number of quiet buffers to allow before stopping
+    private let rmsThreshold: Float = 0.03
 
-    func processAudioBuffer(_ buffer: AVAudioPCMBuffer) -> AVAudioPCMBuffer? {
+    func filter(_ buffer: AVAudioPCMBuffer) -> AVAudioPCMBuffer? {
         guard let floatData = buffer.floatChannelData else {
             return nil
         }

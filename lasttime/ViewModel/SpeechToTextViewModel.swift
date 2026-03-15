@@ -12,8 +12,7 @@ import AVFoundation
 @MainActor
 @Observable
 class SpeechToTextViewModel {
-    
-    private(set) var isRecording = false
+    private(set) var state: AudioAgentState = .idle
     private var lastInteractionContent: (any InteractionContentModel)?
     private var _interactionContent: [any InteractionContentModel] = []
 
@@ -35,14 +34,6 @@ class SpeechToTextViewModel {
         return micPermission && speechPermission
     }
     
-    func toggleRecording() {
-        if isRecording {
-            Task { await stopRecording() }
-        } else {
-            Task { await startRecording() }
-        }
-    }
-    
     func startRecording() async {
         guard await requestPermission() else {
             errorMessage = "Permission denied"
@@ -52,22 +43,38 @@ class SpeechToTextViewModel {
         do {
             try audioManager.setUpAudioSession()
             
-            let userContent = TranscriptionModel(id: UUID())
-            lastInteractionContent = userContent
-            
             try await transcriptionManager.startTranscription { [weak self] text, isFinal in
                 Task { @MainActor in
                     guard let self else { return }
-                    
+
                     self.lastInteractionContent?.updateContent(with: text, isFinal: isFinal)
                 }
             }
             
             try audioManager.startAudioStream { [weak self] buffer in
-                try? self?.transcriptionManager.processAudioBuffer(buffer)
+                if let filtered = try? self?.transcriptionManager.filter(buffer) {
+                    if self?.state == .idle {
+                        self?.state = .listening
+                    }
+                    
+                    if self?.lastInteractionContent == nil {
+                        let userContent = TranscriptionModel(id: UUID(), isFinal: false)
+                        self?.lastInteractionContent = userContent
+                    }
+                    
+                    try? self?.transcriptionManager.processAudioBuffer(filtered)
+                } else {
+                    if self?.state == .listening {
+                        self?.state = .idle
+                    }
+                    
+                    if let content = self?.lastInteractionContent, content.isFinal {
+                        self?._interactionContent.append(content)
+                        self?.lastInteractionContent = nil
+                    }
+                }
             }
             
-            isRecording = true
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
@@ -77,9 +84,8 @@ class SpeechToTextViewModel {
     func stopRecording() async {
         audioManager.stopAudioStream()
         await transcriptionManager.stopTranscription()
-        isRecording = false
         
-        if let content = lastInteractionContent {
+        if let content = lastInteractionContent, content.isFinal {
             _interactionContent.append(content)
             self.lastInteractionContent = nil
         }

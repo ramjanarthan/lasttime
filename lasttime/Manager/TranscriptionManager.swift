@@ -21,7 +21,7 @@ class TranscriptionManager {
     private var analyzer: SpeechAnalyzer?
     private var recogniserTask: Task<(), Error>?
     private var analyserFormat: AVAudioFormat?
-    private let processor = AudioProcessor()
+    private let filter = AudioFilter()
     private var converter = BufferConverter()
     
     func requestSpeechPermission() async -> Bool {
@@ -71,15 +71,15 @@ class TranscriptionManager {
         try await analyzer?.start(inputSequence: inputSequence)
     }
     
+    func filter(_ buffer: AVAudioPCMBuffer) throws -> AVAudioPCMBuffer? {
+        return filter.filter(buffer)
+    }
+    
     func processAudioBuffer(_ buffer: AVAudioPCMBuffer) throws {
         guard let inputBuilder, let analyserFormat else {
             throw TranscriptionError.processingError
         }
-        
-        guard let buffer = processor.processAudioBuffer(buffer) else {
-            return
-        }
-
+       
         let converted = try converter.convertBuffer(buffer, to: analyserFormat)
         inputBuilder.yield(AnalyzerInput(buffer: converted))
     }

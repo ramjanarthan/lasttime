@@ -7,7 +7,7 @@
 
 import Foundation
 
-enum AudioAgentState {
+enum AudioAgentState: Equatable {
     case error(String)
     case idle
     case listening

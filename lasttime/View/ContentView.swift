@@ -12,31 +12,47 @@ struct ContentView: View {
     
     var body: some View {
         VStack {
-            Circle()
-                .fill(viewModel.isRecording ? Color.red : Color.gray)
-                .frame(width: 30, height: 100)
-            
-            
-            Button(viewModel.isRecording ? "Stop" : "Record", systemImage: "mic") {
-                withAnimation {
-                    viewModel.toggleRecording()
-                }
+            switch viewModel.state {
+            case .error(let errorMessage):
+                Text(errorMessage)
+                    .foregroundColor(.red)
+            case .idle:
+                Circle()
+                    .fill(Color.yellow)
+                    .frame(width: 30, height: 100)
+            case .listening:
+                Circle()
+                    .fill(Color.green)
+                    .frame(width: 30, height: 100)
+            case .processing:
+                Circle()
+                    .fill(Color.blue)
+                    .frame(width: 30, height: 100)
+            case .responding:
+                Circle()
+                    .fill(Color.pink)
+                    .frame(width: 30, height: 100)
             }
             
             if viewModel.interactionContent.isEmpty {
-                Text("Tap the mic to start recording..")
+                Text("Say something to get started..")
                     .font(.body)
                     .padding()
             }
           
             InteractionView(viewModel: viewModel)
-            
-            if let errorMessage = viewModel.errorMessage {
-                Text(errorMessage)
-                    .foregroundColor(.red)
-            }
         }
         .padding()
+        .onAppear {
+            Task {
+                await viewModel.startRecording()
+            }
+        }
+        .onDisappear {
+            Task {
+                await viewModel.stopRecording()
+            }
+        }
     }
 }
 
