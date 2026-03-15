@@ -13,7 +13,6 @@ import AVFoundation
 @Observable
 class AudioAgent {
     private(set) var state = AudioAgentState.idle
-    private(set) var model = TranscriptionModel()
     private let audioManager = AudioManager()
     private let transcriptionManager = TranscriptionManager()
     
@@ -36,12 +35,6 @@ class AudioAgent {
                 Task { @MainActor in
                     guard let self else { return }
                     
-                    if isFinal {
-                        self.model.finalizedText += text + " "
-                        self.model.currentText = ""
-                    } else {
-                        self.model.currentText = text
-                    }
                 }
             }
             

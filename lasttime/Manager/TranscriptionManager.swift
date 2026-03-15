@@ -41,9 +41,7 @@ class TranscriptionManager {
     func startTranscription(onResult: @escaping (String, Bool) -> Void) async throws {
         transcriber = SpeechTranscriber(
             locale: Locale.current,
-            transcriptionOptions: [],
-            reportingOptions: [.volatileResults],
-            attributeOptions: []
+            preset: .progressiveTranscription
         )
         
         guard let transcriber else {
@@ -53,6 +51,12 @@ class TranscriptionManager {
         analyzer = SpeechAnalyzer(modules: [transcriber])
         analyserFormat = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [transcriber])
         
+        guard let analyserFormat else {
+            throw TranscriptionError.processingError
+        }
+        
+        try await analyzer?.prepareToAnalyze(in: analyserFormat)
+        
         let (inputSequence, inputBuilder) = AsyncStream<AnalyzerInput>.makeStream()
         self.inputBuilder = inputBuilder
         
@@ -60,6 +64,7 @@ class TranscriptionManager {
             for try await result in transcriber.results {
                 let text = String(result.text.characters)
                 onResult(text, result.isFinal)
+                print("\(Date.now) -- ", text, " -- " ,result.isFinal)
             }
         }
         

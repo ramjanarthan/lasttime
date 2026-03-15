@@ -7,18 +7,27 @@
 
 import Foundation
 
-struct TranscriptionModel {
-    var finalizedText: String = ""
-    var currentText: String = ""
-    var numEmptyBuffers: Int = 0
-    var numNonEmptyBuffers: Int = 0
-    var isRecording: Bool = false
+struct TranscriptionModel: InteractionContentModel {
+    let id: UUID
+    let type = InteractionType.user
     
-    var displayText: String {
-        return finalizedText + currentText
+    private var finalizedText: String = ""
+    private var currentText: String = ""
+    
+    init(id: UUID) {
+        self.id = id
     }
     
-    var totalBuffers: Int {
-        return numEmptyBuffers + numNonEmptyBuffers
+    mutating func updateContent(with text: String, isFinal: Bool) {
+        if isFinal {
+            self.finalizedText += text + " "
+            self.currentText = ""
+        } else {
+            self.currentText = text
+        }
+    }
+    
+    var displayContent: String {
+        return finalizedText + currentText
     }
 }

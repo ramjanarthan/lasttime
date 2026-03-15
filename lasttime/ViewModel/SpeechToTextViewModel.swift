@@ -13,8 +13,19 @@ import AVFoundation
 @Observable
 class SpeechToTextViewModel {
     
-    private(set) var model = TranscriptionModel()
+    private(set) var isRecording = false
+    private var lastInteractionContent: (any InteractionContentModel)?
+    private var _interactionContent: [any InteractionContentModel] = []
+
+    var interactionContent: [any InteractionContentModel] {
+        if let lastInteractionContent = lastInteractionContent {
+            return _interactionContent + [lastInteractionContent]
+        }
+        return _interactionContent
+    }
+    
     private(set) var errorMessage: String?
+
     private let audioManager = AudioManager()
     private let transcriptionManager = TranscriptionManager()
     
@@ -25,17 +36,11 @@ class SpeechToTextViewModel {
     }
     
     func toggleRecording() {
-        if model.isRecording {
+        if isRecording {
             Task { await stopRecording() }
         } else {
             Task { await startRecording() }
         }
-    }
-    
-    func clearTranscript() {
-        model.finalizedText = ""
-        model.currentText = ""
-        errorMessage = nil
     }
     
     func startRecording() async {
@@ -47,16 +52,14 @@ class SpeechToTextViewModel {
         do {
             try audioManager.setUpAudioSession()
             
+            let userContent = TranscriptionModel(id: UUID())
+            lastInteractionContent = userContent
+            
             try await transcriptionManager.startTranscription { [weak self] text, isFinal in
                 Task { @MainActor in
                     guard let self else { return }
                     
-                    if isFinal {
-                        self.model.finalizedText += text + " "
-                        self.model.currentText = ""
-                    } else {
-                        self.model.currentText = text
-                    }
+                    self.lastInteractionContent?.updateContent(with: text, isFinal: isFinal)
                 }
             }
             
@@ -64,7 +67,7 @@ class SpeechToTextViewModel {
                 try? self?.transcriptionManager.processAudioBuffer(buffer)
             }
             
-            model.isRecording = true
+            isRecording = true
             errorMessage = nil
         } catch {
             errorMessage = error.localizedDescription
@@ -74,6 +77,11 @@ class SpeechToTextViewModel {
     func stopRecording() async {
         audioManager.stopAudioStream()
         await transcriptionManager.stopTranscription()
-        model.isRecording = false
+        isRecording = false
+        
+        if let content = lastInteractionContent {
+            _interactionContent.append(content)
+            self.lastInteractionContent = nil
+        }
     }
 }

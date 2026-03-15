@@ -13,29 +13,23 @@ struct ContentView: View {
     var body: some View {
         VStack {
             Circle()
-                .fill(viewModel.model.isRecording ? Color.red : Color.gray)
+                .fill(viewModel.isRecording ? Color.red : Color.gray)
                 .frame(width: 30, height: 100)
             
             
-            Button(viewModel.model.isRecording ? "Stop" : "Record", systemImage: "mic") {
+            Button(viewModel.isRecording ? "Stop" : "Record", systemImage: "mic") {
                 withAnimation {
                     viewModel.toggleRecording()
                 }
             }
             
-            ScrollView {
-                VStack(alignment: .leading, spacing: 10) {
-                    if !viewModel.model.displayText.isEmpty {
-                        Text(viewModel.model.displayText)
-                            .font(.body)
-                            .padding()
-                    } else {
-                        Text("Tap the mic to start recording..")
-                            .font(.body)
-                            .padding()
-                    }
-                }
+            if viewModel.interactionContent.isEmpty {
+                Text("Tap the mic to start recording..")
+                    .font(.body)
+                    .padding()
             }
+          
+            InteractionView(viewModel: viewModel)
             
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
