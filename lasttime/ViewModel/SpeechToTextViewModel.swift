@@ -27,6 +27,7 @@ class SpeechToTextViewModel {
 
     private let audioManager = AudioManager()
     private let transcriptionManager = TranscriptionManager()
+    private let generationManager = GenerationManager()
     
     private func requestPermission() async -> Bool {
         let micPermission = await audioManager.requestMicPermission()
@@ -57,6 +58,10 @@ class SpeechToTextViewModel {
                         self?.state = .listening
                     }
                     
+                    guard self?.state == .listening else {
+                        return
+                    }
+                    
                     if self?.lastInteractionContent == nil {
                         let userContent = TranscriptionModel(id: UUID(), isFinal: false)
                         self?.lastInteractionContent = userContent
@@ -68,7 +73,21 @@ class SpeechToTextViewModel {
                         self?.state = .idle
                     }
                     
+                    guard self?.state == .idle else {
+                        return
+                    }
+                    
                     if let content = self?.lastInteractionContent, content.isFinal {
+                        Task {
+                            if let model = content as? TranscriptionModel {
+                                do  {
+                                    try await self?.generateResponse(for: model)
+                                } catch {
+                                    print("Error: ", error.localizedDescription)
+                                }
+                            }
+                        }
+                        
                         self?._interactionContent.append(content)
                         self?.lastInteractionContent = nil
                     }
@@ -89,5 +108,17 @@ class SpeechToTextViewModel {
             _interactionContent.append(content)
             self.lastInteractionContent = nil
         }
+    }
+    
+    private func generateResponse(for interactionContent: TranscriptionModel) async throws {
+        state = .processing
+        
+        let response = try await generationManager.generateOutput(for: interactionContent.displayContent)
+        
+        var content = GenerationModel(id: UUID(), isFinal: true)
+        content.updateContent(with: response, isFinal: true)
+        _interactionContent.append(content)
+        
+        state = .idle
     }
 }
