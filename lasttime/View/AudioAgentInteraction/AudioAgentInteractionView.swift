@@ -1,5 +1,5 @@
 //
-//  ContentView.swift
+//  AudioAgentInteractionView.swift
 //  lasttime
 //
 //  Created by Ram Janarthan on 9/3/26.
@@ -7,8 +7,8 @@
 
 import SwiftUI
 
-struct ContentView: View {
-    @State private var viewModel = SpeechToTextViewModel()
+struct AudioAgentInteractionView: View {
+    @State private var viewModel = ViewModel()
     
     var body: some View {
         VStack {
@@ -20,7 +20,7 @@ struct ContentView: View {
                 Circle()
                     .fill(Color.yellow)
                     .frame(width: 30, height: 100)
-            case .listening:
+            case .transcribing:
                 Circle()
                     .fill(Color.green)
                     .frame(width: 30, height: 100)
@@ -40,7 +40,7 @@ struct ContentView: View {
                     .padding()
             }
           
-            InteractionView(viewModel: viewModel)
+            ChatView(viewModel: viewModel)
         }
         .padding()
         .onAppear {
@@ -57,5 +57,5 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    AudioAgentInteractionView()
 }

@@ -15,7 +15,6 @@ class GenerationManager {
         session = LanguageModelSession(instructions: GenerationManager.instructions)
     }
     
-    
     func generateOutput(for input: String) throws -> AsyncStream<String> {
         return AsyncStream { continuation in
             Task.detached {

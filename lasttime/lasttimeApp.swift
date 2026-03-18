@@ -11,7 +11,7 @@ import SwiftUI
 struct lasttimeApp: App {
     var body: some Scene {
         WindowGroup {
-            ContentView()
+            AudioAgentInteractionView()
         }
     }
 }

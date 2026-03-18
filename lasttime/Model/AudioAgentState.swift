@@ -10,7 +10,7 @@ import Foundation
 enum AudioAgentState: Equatable {
     case error(String)
     case idle
-    case listening
+    case transcribing
     case processing
     case responding
 }
