@@ -15,6 +15,21 @@ class GenerationManager {
         session = LanguageModelSession(instructions: GenerationManager.instructions)
     }
     
+    
+    func generateOutput(for input: String) throws -> AsyncStream<String> {
+        return AsyncStream { continuation in
+            Task.detached {
+                for char in input {
+                    try await Task.sleep(for: .seconds(0.5))
+                    continuation.yield(String(char))
+                }
+                
+                continuation.finish()
+            }
+        }
+    }
+    
+    
     func generateOutput(for input: String) async throws -> String {
         let response = try await session.respond(to: input)
         return response.content
