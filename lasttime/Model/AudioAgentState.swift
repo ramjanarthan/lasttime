@@ -11,14 +11,15 @@ enum AudioAgentState: Equatable {
     case error(String)
     case idle
     case transcribing
-    case processing
-    case responding
+//    case processing
+//    case responding
 }
 
 enum AudioAgentEvent: Equatable {
+    case onError(String)
     case onAppear
     case onDisappear
-    case onStartTranscribing
+    case transcribing
     case onFinishedTranscribing
-    case onFinishedProcessing
+//    case onFinishedProcessing
 }

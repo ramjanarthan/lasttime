@@ -18,7 +18,8 @@ class AudioManager {
         (audioBufferStream, audioBufferStreamBuilder) = AsyncStream<AVAudioPCMBuffer>.makeStream()
     }
     
-    var audioTapInstalled = false
+    private var audioTapInstalled = false
+    var isAudioStreamRunning: Bool { audioTapInstalled }
     
     func setUpAudioSession() throws {
         let audioSession = AVAudioSession.sharedInstance()
@@ -44,6 +45,7 @@ class AudioManager {
         audioEngine.prepare()
         try audioEngine.start()
         audioTapInstalled = true
+        print("Starting audio stream")
     }
     
     func stopAudioStream() {

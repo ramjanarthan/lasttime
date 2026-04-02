@@ -95,6 +95,7 @@ class TranscriptionManager {
             try await analyzer?.start(inputSequence: inputSequence)
         }
         
+        print("Starting transcription")
         return transcriptionUpdateSequence
     }
     

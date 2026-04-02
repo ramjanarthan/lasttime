@@ -24,14 +24,14 @@ struct AudioAgentInteractionView: View {
                 Circle()
                     .fill(Color.green)
                     .frame(width: 30, height: 100)
-            case .processing:
-                Circle()
-                    .fill(Color.blue)
-                    .frame(width: 30, height: 100)
-            case .responding:
-                Circle()
-                    .fill(Color.pink)
-                    .frame(width: 30, height: 100)
+//            case .processing:
+//                Circle()
+//                    .fill(Color.blue)
+//                    .frame(width: 30, height: 100)
+//            case .responding:
+//                Circle()
+//                    .fill(Color.pink)
+//                    .frame(width: 30, height: 100)
             }
             
             if viewModel.interactionContent.isEmpty {
@@ -45,12 +45,12 @@ struct AudioAgentInteractionView: View {
         .padding()
         .onAppear {
             Task {
-                await viewModel.startRecording()
+                await viewModel.handleEvent(.onAppear)
             }
         }
         .onDisappear {
             Task {
-                await viewModel.stopRecording()
+                await viewModel.handleEvent(.onDisappear)
             }
         }
     }

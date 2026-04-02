@@ -32,7 +32,9 @@ extension AudioAgentInteractionView {
         
         private let audioManager = AudioManager()
         private let transcriptionManager = TranscriptionManager()
-        private let generationManager = GenerationManager()
+//        private let generationManager = GenerationManager()
+        
+        private var transcriptionObservationTask: Task<(), Error>?
         
         init() {
             do {
@@ -49,93 +51,93 @@ extension AudioAgentInteractionView {
         }
         
         private func handleStateChange(oldValue: AudioAgentState, newValue: AudioAgentState) {
-            switch (oldValue, newValue) {
-            case (.idle, .transcribing):
-                break
-            case (.transcribing, .processing):
-                break
-            case (.processing, .idle):
-                break
-            default:
-                fatalError("Error in the setup")
-            }
+//            switch (oldValue, newValue) {
+//            case (.idle, .transcribing):
+//                break
+//            case (.transcribing, .processing):
+//                break
+//            case (.processing, .idle):
+//                break
+//            default:
+//                fatalError("Error in the setup")
+//            }
         }
         
-        func send(_ event: AudioAgentEvent) {
-            
-        }
-        
-        private func handleEvent(_ event: AudioAgentEvent) async {
-            do {
-                switch (state, event) {
-                case (.idle, .onAppear):
-                    try audioManager.startAudioStream()
-                    try await transcriptionManager.startTranscription(audioBufferStream: audioManager.audioBufferStream)
-                    
+        func handleEvent(_ event: AudioAgentEvent) async {
+            print("Handle event ---- ", event)
+            switch (state, event) {
+            case (_, .onAppear):
+                await startRecording()
+                await startTranscribing()
+            case (_, .onDisappear):
+                await stopTranscribing()
+                await stopRecording()
+            case (_, .transcribing):
+                self.state = .transcribing
+            case (_, .onFinishedTranscribing):
+                if let lastInteractionContent {
+                    self._interactionContent.append(lastInteractionContent)
+                    self.lastInteractionContent = nil
                 }
-            } catch {
-                
+                self.state = .idle
+            case (_, .onError(let errorMessage)):
+                self.state = .error(errorMessage)
             }
+            
         }
 
         func startRecording() async {
             guard await requestPermission() else {
-                state = .error("Please grant permission to use the app")
+                await self.handleEvent(.onError("Please grant mic and speech analysis access in settings"))
+                return
+            }
+            
+            guard !audioManager.isAudioStreamRunning else {
                 return
             }
             
             do {
-                try await transcriptionManager.startTranscription { [weak self] text, isFinal in
-                    Task { @MainActor in
-                        guard let self else { return }
-                        
-                        self.lastInteractionContent?.up                         QQ  QdateContent(with: text, isFinal: isFinal)
-                    }
-                }
-                
-                try audioManager.startAudioStream { [weak self] buffer in
-                    if let filtered = try? self?.transcriptionManager.filter(buffer) {
-                        if self?.state == .idle {
-                            self?.state = .transcribing
-                        }
-                        
-                        guard self?.state == .transcribing else {
-                            return
-                        }
-                        
-                        if self?.lastInteractionContent == nil {
-                            let userContent = TranscriptionModel(id: UUID(), isFinal: false)
-                            self?.lastInteractionContent = userContent
-                        }
-                        
-                        try? self?.transcriptionManager.processAudioBuffer(filtered)
-                    } else {
-                        if self?.state == .transcribing {
-                            self?.state = .idle
-                        }
-                        
-                        guard self?.state == .idle else {
-                            return
-                        }
-                        
-                        if let content = self?.lastInteractionContent, content.isFinal {
-                            Task {
-                                if let model = content as? TranscriptionModel {
-                                    do  {
-                                        try await self?.generateResponse(for: model)
-                                    } catch {
-                                        print("Error: ", error.localizedDescription)
-                                    }
-                                }
+                try audioManager.startAudioStream()
+            } catch {
+                await handleEvent(.onError(error.localizedDescription))
+            }
+        }
+        
+        func startTranscribing() async {
+            do {
+                try await transcriptionManager.setup()
+                let transcriptionUpdateStream = try await transcriptionManager.startTranscription(audioBufferStream: audioManager.audioBufferStream)
+                transcriptionObservationTask = Task { @MainActor in
+                    for try await event in transcriptionUpdateStream {
+                        print("Event -- ", event)
+                        switch event {
+                        case .filtered:
+                            //                            self.state = .idle
+                            break
+                        case .transcribed(let result, let isFinished):
+                            if self.lastInteractionContent == nil {
+                                self.lastInteractionContent = TranscriptionModel(id: UUID(), isFinal: false)
                             }
                             
-                            self?._interactionContent.append(content)
-                            self?.lastInteractionContent = nil
+                            self.lastInteractionContent?.updateContent(with: result, isFinal: isFinished)
+                            if isFinished {
+                                await self.handleEvent(.onFinishedTranscribing)
+                            } else {
+                                await self.handleEvent(.transcribing)
+                            }
                         }
                     }
+                    
                 }
             } catch {
-                state = .error(error.localizedDescription)
+                await handleEvent(.onError(error.localizedDescription))
+            }
+        }
+        
+        func stopTranscribing() async {
+            if let task = transcriptionObservationTask {
+                task.cancel()
+                transcriptionObservationTask = nil
             }
         }
         
@@ -150,15 +152,15 @@ extension AudioAgentInteractionView {
         }
         
         private func generateResponse(for interactionContent: TranscriptionModel) async throws {
-            state = .processing
-            
-            let response = try await generationManager.generateOutput(for: interactionContent.displayContent)
-            
-            var content = GenerationModel(id: UUID(), isFinal: true)
-            content.updateContent(with: response, isFinal: true)
-            _interactionContent.append(content)
-            
-            state = .idle
+//            state = .processing
+//            
+//            let response = try await generationManager.generateOutput(for: interactionContent.displayContent)
+//            
+//            var content = GenerationModel(id: UUID(), isFinal: true)
+//            content.updateContent(with: response, isFinal: true)
+//            _interactionContent.append(content)
+//            
+//            state = .idle
         }
     }
 }
