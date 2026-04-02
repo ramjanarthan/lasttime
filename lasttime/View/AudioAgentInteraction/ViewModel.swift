@@ -14,7 +14,12 @@ extension AudioAgentInteractionView {
     @MainActor
     @Observable
     class ViewModel {
-        private(set) var state: AudioAgentState = .idle
+        private(set) var state: AudioAgentState = .idle {
+            didSet {
+                handleStateChange(oldValue: oldValue, newValue: state)
+            }
+        }
+
         private var lastInteractionContent: (any InteractionContentModel)?
         private var _interactionContent: [any InteractionContentModel] = []
         
@@ -25,11 +30,17 @@ extension AudioAgentInteractionView {
             return _interactionContent
         }
         
-        private(set) var errorMessage: String?
-        
         private let audioManager = AudioManager()
         private let transcriptionManager = TranscriptionManager()
         private let generationManager = GenerationManager()
+        
+        init() {
+            do {
+                try audioManager.setUpAudioSession()
+            } catch {
+                state = .error(error.localizedDescription)
+            }
+        }
         
         private func requestPermission() async -> Bool {
             let micPermission = await audioManager.requestMicPermission()
@@ -37,26 +48,48 @@ extension AudioAgentInteractionView {
             return micPermission && speechPermission
         }
         
-        func onAppear() async {
-            
+        private func handleStateChange(oldValue: AudioAgentState, newValue: AudioAgentState) {
+            switch (oldValue, newValue) {
+            case (.idle, .transcribing):
+                break
+            case (.transcribing, .processing):
+                break
+            case (.processing, .idle):
+                break
+            default:
+                fatalError("Error in the setup")
+            }
+        }
+        
+        func send(_ event: AudioAgentEvent) {
             
         }
         
-        
+        private func handleEvent(_ event: AudioAgentEvent) async {
+            do {
+                switch (state, event) {
+                case (.idle, .onAppear):
+                    try audioManager.startAudioStream()
+                    try await transcriptionManager.startTranscription(audioBufferStream: audioManager.audioBufferStream)
+                    
+                }
+            } catch {
+                
+            }
+        }
+
         func startRecording() async {
             guard await requestPermission() else {
-                errorMessage = "Permission denied"
+                state = .error("Please grant permission to use the app")
                 return
             }
             
             do {
-                try audioManager.setUpAudioSession()
-                
                 try await transcriptionManager.startTranscription { [weak self] text, isFinal in
                     Task { @MainActor in
                         guard let self else { return }
                         
-                        self.lastInteractionContent?.updateContent(with: text, isFinal: isFinal)
+                        self.lastInteractionContent?.up                         QQ  QdateContent(with: text, isFinal: isFinal)
                     }
                 }
                 
@@ -101,10 +134,8 @@ extension AudioAgentInteractionView {
                         }
                     }
                 }
-                
-                errorMessage = nil
             } catch {
-                errorMessage = error.localizedDescription
+                state = .error(error.localizedDescription)
             }
         }
         

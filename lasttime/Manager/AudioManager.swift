@@ -10,6 +10,14 @@ import AVFoundation
 
 class AudioManager {
     let audioEngine = AVAudioEngine()
+    
+    let audioBufferStream: AsyncStream<AVAudioPCMBuffer>
+    private let audioBufferStreamBuilder: AsyncStream<AVAudioPCMBuffer>.Continuation
+    
+    init() {
+        (audioBufferStream, audioBufferStreamBuilder) = AsyncStream<AVAudioPCMBuffer>.makeStream()
+    }
+    
     var audioTapInstalled = false
     
     func setUpAudioSession() throws {
@@ -22,15 +30,15 @@ class AudioManager {
         return await AVAudioApplication.requestRecordPermission()
     }
     
-    func startAudioStream(onBuffer: @escaping (AVAudioPCMBuffer) -> Void) throws {
+    func startAudioStream() throws {
         guard !audioTapInstalled else { return }
         
         audioEngine.inputNode.installTap(
             onBus: 0,
             bufferSize: 1024,
             format: audioEngine.inputNode.outputFormat(forBus: 0)
-        ) { buffer, _ in
-                onBuffer(buffer)
+        ) { [weak self] buffer, _ in
+            self?.audioBufferStreamBuilder.yield(buffer)
         }
         
         audioEngine.prepare()
@@ -40,6 +48,8 @@ class AudioManager {
     
     func stopAudioStream() {
         guard audioTapInstalled else { return }
+        
+        self.audioBufferStreamBuilder.finish()
         
         audioEngine.stop()
         audioEngine.inputNode.removeTap(onBus: 0)

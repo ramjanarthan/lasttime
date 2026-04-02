@@ -14,3 +14,11 @@ enum AudioAgentState: Equatable {
     case processing
     case responding
 }
+
+enum AudioAgentEvent: Equatable {
+    case onAppear
+    case onDisappear
+    case onStartTranscribing
+    case onFinishedTranscribing
+    case onFinishedProcessing
+}
