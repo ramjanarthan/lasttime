@@ -36,13 +36,6 @@ extension AudioAgentInteractionView {
         
         private var transcriptionObservationTask: Task<(), Error>?
         
-        init() {
-            do {
-                try audioManager.setUpAudioSession()
-            } catch {
-                state = .error(error.localizedDescription)
-            }
-        }
         
         private func requestPermission() async -> Bool {
             let micPermission = await audioManager.requestMicPermission()

@@ -19,14 +19,7 @@ class AudioManager {
     }
     
     private var audioTapInstalled = false
-    var isAudioStreamRunning: Bool { audioTapInstalled }
-    
-    func setUpAudioSession() throws {
-        let audioSession = AVAudioSession.sharedInstance()
-        try audioSession.setCategory(.playAndRecord, mode: .spokenAudio)
-        try audioSession.setActive(true, options: .notifyOthersOnDeactivation)
-    }
-    
+    var isAudioStreamRunning: Bool { audioTapInstalled } 
     func requestMicPermission() async -> Bool {
         return await AVAudioApplication.requestRecordPermission()
     }
