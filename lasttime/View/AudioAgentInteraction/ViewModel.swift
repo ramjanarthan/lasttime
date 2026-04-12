@@ -32,7 +32,7 @@ extension AudioAgentInteractionView {
         
         private let audioManager = AudioManager()
         private let transcriptionManager = TranscriptionManager()
-//        private let generationManager = GenerationManager()
+        private let generationManager = GenerationManager()
         
         private var transcriptionObservationTask: Task<(), Error>?
         
@@ -68,10 +68,16 @@ extension AudioAgentInteractionView {
             case (_, .transcribing):
                 self.state = .transcribing
             case (_, .onFinishedTranscribing):
-                if let lastInteractionContent {
-                    self._interactionContent.append(lastInteractionContent)
+                if let content = lastInteractionContent as? TranscriptionModel {
+                    self._interactionContent.append(content)
                     self.lastInteractionContent = nil
+                    
+                    self.state = .processing
+                    await generateResponse(for: content)
+                } else {
+                    self.state = .idle
                 }
+            case (_, .onFinishedProcessing):
                 self.state = .idle
             case (_, .onError(let errorMessage)):
                 self.state = .error(errorMessage)
@@ -105,7 +111,7 @@ extension AudioAgentInteractionView {
                         print("Event -- ", event)
                         switch event {
                         case .filtered:
-                            //                            self.state = .idle
+                            // self.state = .idle
                             break
                         case .transcribed(let result, let isFinished):
                             if self.lastInteractionContent == nil {
@@ -144,16 +150,18 @@ extension AudioAgentInteractionView {
             }
         }
         
-        private func generateResponse(for interactionContent: TranscriptionModel) async throws {
-//            state = .processing
-//            
-//            let response = try await generationManager.generateOutput(for: interactionContent.displayContent)
-//            
-//            var content = GenerationModel(id: UUID(), isFinal: true)
-//            content.updateContent(with: response, isFinal: true)
-//            _interactionContent.append(content)
-//            
-//            state = .idle
+        private func generateResponse(for interactionContent: TranscriptionModel) async {
+            do {
+                let response = try await generationManager.generateOutput(for: interactionContent.displayContent)
+                
+                await handleEvent(.onFinishedProcessing)
+                
+                var content = GenerationModel(id: UUID(), isFinal: true)
+                content.updateContent(with: response, isFinal: true)
+                _interactionContent.append(content)
+            } catch {
+                await handleEvent(.onError(error.localizedDescription))
+            }
         }
     }
 }

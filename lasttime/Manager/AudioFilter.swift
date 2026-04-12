@@ -15,25 +15,25 @@ class AudioFilter {
     private let rmsThreshold: Float = 0.03
 
     func filter(_ buffer: AVAudioPCMBuffer) -> AVAudioPCMBuffer? {
-        guard let floatData = buffer.floatChannelData else {
-            return nil
-        }
-
-        let samples = UnsafeBufferPointer(start: floatData[0], count: Int(buffer.frameLength))
-        let energy = vDSP.rootMeanSquare(samples)
-        print("Energy ", energy)
-
-        if energy > rmsThreshold {
-            silenceCounter = silenceLimit
-        } else {
-            if silenceCounter > 0 {
-                silenceCounter -= 1
-            }
-        }
-
-        if silenceCounter <= 0 {
-            return nil
-        }
+//        guard let floatData = buffer.floatChannelData else {
+//            return nil
+//        }
+//
+//        let samples = UnsafeBufferPointer(start: floatData[0], count: Int(buffer.frameLength))
+//        let energy = vDSP.rootMeanSquare(samples)
+//        print("Energy ", energy)
+//
+//        if energy > rmsThreshold {
+//            silenceCounter = silenceLimit
+//        } else {
+//            if silenceCounter > 0 {
+//                silenceCounter -= 1
+//            }
+//        }
+//
+//        if silenceCounter <= 0 {
+//            return nil
+//        }
         
         return buffer
     }
