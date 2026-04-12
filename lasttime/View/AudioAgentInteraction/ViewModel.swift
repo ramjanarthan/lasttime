@@ -36,7 +36,6 @@ extension AudioAgentInteractionView {
         
         private var transcriptionObservationTask: Task<(), Error>?
         
-        
         private func requestPermission() async -> Bool {
             let micPermission = await audioManager.requestMicPermission()
             let speechPermission = await transcriptionManager.requestSpeechPermission()
@@ -54,6 +53,22 @@ extension AudioAgentInteractionView {
 //            default:
 //                fatalError("Error in the setup")
 //            }
+        }
+        
+        init() {
+            switch generationManager.getModelAvailability() {
+            case .unavailable(let reason):
+                switch reason {
+                case .appleIntelligenceNotEnabled:
+                    self.state = .error("Sorry, this device does not have apple intelligence enabled")
+                case .deviceNotEligible:
+                    self.state = .error("Sorry, this device is not eligible for apple intelligence")
+                case .modelNotReady:
+                    self.state = .error("Sorry, the model is not ready yet")
+                }
+            case .available:
+                break
+            }
         }
         
         func handleEvent(_ event: AudioAgentEvent) async {
