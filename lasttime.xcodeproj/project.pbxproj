@@ -6,7 +6,18 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXContainerItemProxy section */
+		4225C5762F8D5ED800124392 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 42C6F0E92F5EAD2E00820C5B /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 42C6F0F02F5EAD2E00820C5B;
+			remoteInfo = lasttime;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		4225C5722F8D5ED800124392 /* lasttimeTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = lasttimeTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		42C6F0F12F5EAD2E00820C5B /* lasttime.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = lasttime.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -21,6 +32,11 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		4225C5732F8D5ED800124392 /* lasttimeTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = lasttimeTests;
+			sourceTree = "<group>";
+		};
 		42C6F0F32F5EAD2E00820C5B /* lasttime */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -32,6 +48,13 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		4225C56F2F8D5ED800124392 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		42C6F0EE2F5EAD2E00820C5B /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -46,6 +69,7 @@
 			isa = PBXGroup;
 			children = (
 				42C6F0F32F5EAD2E00820C5B /* lasttime */,
+				4225C5732F8D5ED800124392 /* lasttimeTests */,
 				42C6F0F22F5EAD2E00820C5B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -54,6 +78,7 @@
 			isa = PBXGroup;
 			children = (
 				42C6F0F12F5EAD2E00820C5B /* lasttime.app */,
+				4225C5722F8D5ED800124392 /* lasttimeTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -61,6 +86,29 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		4225C5712F8D5ED800124392 /* lasttimeTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 4225C5782F8D5ED800124392 /* Build configuration list for PBXNativeTarget "lasttimeTests" */;
+			buildPhases = (
+				4225C56E2F8D5ED800124392 /* Sources */,
+				4225C56F2F8D5ED800124392 /* Frameworks */,
+				4225C5702F8D5ED800124392 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				4225C5772F8D5ED800124392 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				4225C5732F8D5ED800124392 /* lasttimeTests */,
+			);
+			name = lasttimeTests;
+			packageProductDependencies = (
+			);
+			productName = lasttimeTests;
+			productReference = 4225C5722F8D5ED800124392 /* lasttimeTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		42C6F0F02F5EAD2E00820C5B /* lasttime */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 42C6F0FC2F5EAD2F00820C5B /* Build configuration list for PBXNativeTarget "lasttime" */;
@@ -90,9 +138,13 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1640;
+				LastSwiftUpdateCheck = 2630;
 				LastUpgradeCheck = 1640;
 				TargetAttributes = {
+					4225C5712F8D5ED800124392 = {
+						CreatedOnToolsVersion = 26.3;
+						TestTargetID = 42C6F0F02F5EAD2E00820C5B;
+					};
 					42C6F0F02F5EAD2E00820C5B = {
 						CreatedOnToolsVersion = 16.4;
 					};
@@ -113,11 +165,19 @@
 			projectRoot = "";
 			targets = (
 				42C6F0F02F5EAD2E00820C5B /* lasttime */,
+				4225C5712F8D5ED800124392 /* lasttimeTests */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		4225C5702F8D5ED800124392 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		42C6F0EF2F5EAD2E00820C5B /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -128,6 +188,13 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		4225C56E2F8D5ED800124392 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		42C6F0ED2F5EAD2E00820C5B /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -137,7 +204,59 @@
 		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		4225C5772F8D5ED800124392 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 42C6F0F02F5EAD2E00820C5B /* lasttime */;
+			targetProxy = 4225C5762F8D5ED800124392 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		4225C5792F8D5ED800124392 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = LR9WFWNA4S;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.usheringtech.lasttimeTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/lasttime.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/lasttime";
+			};
+			name = Debug;
+		};
+		4225C57A2F8D5ED800124392 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = LR9WFWNA4S;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 26.2;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.usheringtech.lasttimeTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				STRING_CATALOG_GENERATE_SYMBOLS = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/lasttime.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/lasttime";
+			};
+			name = Release;
+		};
 		42C6F0FA2F5EAD2F00820C5B /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -333,6 +452,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		4225C5782F8D5ED800124392 /* Build configuration list for PBXNativeTarget "lasttimeTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				4225C5792F8D5ED800124392 /* Debug */,
+				4225C57A2F8D5ED800124392 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		42C6F0EC2F5EAD2E00820C5B /* Build configuration list for PBXProject "lasttime" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

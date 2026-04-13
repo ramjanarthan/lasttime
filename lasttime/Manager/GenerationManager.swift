@@ -13,54 +13,64 @@ class GenerationManager {
     private let memoryManager = MemoryManager()
     
     init() {
-        session = LanguageModelSession(instructions: GenerationManager.instructions)
+        session = LanguageModelSession(instructions: GenerationManager.classificationInstructions)
+        session.prewarm()
     }
     
     func getModelAvailability() -> SystemLanguageModel.Availability {
         return SystemLanguageModel.default.availability
     }
     
-    func generateOutput(for input: String) async throws -> String {
-        let response = try await session.respond(to: input, generating: UserQueryClassification.self)
-        
-        print("Response: \(response.rawContent)")
-//        return "Is this a valid memory query? \(response.content.isMemoryQuery). What is the query: \(response.content.query)"
-        
-        let valid_memories = memoryManager.getRelevantMemories(for: response.content.query)
-        if let memory = valid_memories.first {
-            print("The relevant memory is: \(memory)")
-            
-            let prompt = Prompt {
-                "Your task is to generate a response to the question: \(response.content.query). The relevant memory is: \(memory)"
-            }
-                
-            let response = try await session.respond(to: prompt)
+    func classifiyInput(for input: String) async -> UserQueryClassification {
+        do {
+            let response = try await session.respond(to: input, generating: UserQueryClassification.self)
             return response.content
-        } else {
-            return "I couldn't find a relevant memory for that question."
+        } catch {
+            return .invalid
         }
     }
     
-    func createNewSession() {
-        session = LanguageModelSession(instructions: GenerationManager.instructions)
+    func generateOutput(for input: String) async throws -> String {
+        let response = await classifiyInput(for: input)
+        
+        print("Response: \(response)")
+        
+        switch response {
+        case .memory(let memory):
+            return "I'm saving this as a memory -- \(memory)"
+        case .query(let query):
+            let valid_memories = memoryManager.getRelevantMemories(for: query)
+            if let memory = valid_memories.first {
+                print("The relevant memory is: \(memory)")
+                
+                let prompt = Prompt {
+                    "Your task is to generate a response to the question: \(query). The relevant memory is: \(memory)"
+                }
+                
+                let response = try await session.respond(to: prompt)
+                return response.content
+            } else {
+                return "I couldn't find a relevant memory for that question."
+            }
+        case .invalid:
+            return "This isn't a valid input type for me"
+        }
     }
 }
 
 // PROMPTs
 extension GenerationManager {
-    static let instructions = """
+    static let classificationInstructions: String = """
     Decide if this is valid personal question about the user.  
     """
 }
 
 // GENERABLES
-@Generable(description: "Decision on whether this is a valid memory query")
-struct UserQueryClassification {
-    @Guide(description: "Boolean value indicating whether the input is a valid memory query")
-    let isMemoryQuery: Bool
-    
-    @Guide(description: "If valid memory query, the query to look up. Empty string otherwise.")
-    let query: String
+@Generable(description: "Classification of user input as a memory, a personal query, or anything else")
+enum UserQueryClassification: Equatable {
+    case memory(String)
+    case query(String)
+    case invalid
 }
 
 // TOOL
