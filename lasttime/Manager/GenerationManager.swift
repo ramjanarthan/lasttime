@@ -15,16 +15,32 @@ class GenerationManager {
         return SystemLanguageModel.default.availability
     }
     
-    private func classifyAsMemory(_ input: String) async throws -> MemoryToRememberClassification {
-        let session = LanguageModelSession(model: .default, instructions: GenerationManager.memoryClassificationInstruction)
-        let response = try await session.respond(to: input, generating: MemoryToRememberClassification.self)
+    private func classifyAsMemory(_ input: String) async throws -> FactClassification {
+        let session = LanguageModelSession(model: .default)
+        let prompt = Prompt {
+            "Classify this sentence as a fact about the user. Questions are not facts"
+            "------------"
+            "\(input)."
+        }
+        let response = try await session.respond(to: prompt, generating: FactClassification.self)
         return response.content
     }
     
-    private func classifyAsQuery(_ input: String) async throws -> WhenQuestionClassification {
-        let session = LanguageModelSession(model: .default, instructions: GenerationManager.whenQuestionClassificationInstruction)
-        let response = try await session.respond(to: input, generating: WhenQuestionClassification.self)
-        return response.content
+    private func classifyAsQuery(_ input: String) async throws -> QuestionClassification {
+        let session = LanguageModelSession(model: .default)
+        let prompt = Prompt {
+            "Classify this sentence as a personal question about the user: "
+            "------------"
+            "\(input)."
+        }
+        let response = try await session.respond(to: prompt, generating: QuestionClassification.self)
+        
+        let containsWhen = input.lowercased().contains("when")
+        if containsWhen, response.content.isQuestion {
+            return QuestionClassification(isQuestion: true, question: response.content.question)
+        } else {
+            return QuestionClassification(isQuestion: false, question: "")
+        }
     }
     
     func classifiyInput(for input: String) async -> UserQueryClassification {
@@ -32,15 +48,19 @@ class GenerationManager {
             let memoryClassification = try await classifyAsMemory(input)
             let whenQuestionClassification = try await classifyAsQuery(input)
             
-            if memoryClassification.shouldRemember, whenQuestionClassification.isWhenQuestion {
-                return .invalid
-            } else if memoryClassification.shouldRemember {
-                return .memory(memoryClassification.memory)
-            } else if whenQuestionClassification.isWhenQuestion {
+            print("memory: \(memoryClassification), when: \(whenQuestionClassification)")
+
+            
+            if whenQuestionClassification.isQuestion {
                 return .query(whenQuestionClassification.question)
+            } else if memoryClassification.isFact {
+                return .memory(memoryClassification.fact)
             } else {
                 return .invalid
-            } 
+            }
+//            let session = LanguageModelSession(model: .default, instructions: GenerationManager.userQueryClassifcationInstructions)
+//            let response = try await session.respond(to: input, generating: UserQueryClassification.self)
+//            return response.content
         } catch {
             return .invalid
         }
@@ -78,17 +98,20 @@ class GenerationManager {
 // PROMPTs
 extension GenerationManager {
     static let whenQuestionClassificationInstruction: String = """
-    Classify this sentence as a when question or not
+        Classify the following sentence as a question or not
     """
     
     static let memoryClassificationInstruction: String = """
-        Classify this sentence as a valid personal memory or not
+        Classify this sentence as a personal user fact or not
     """
     
+    static let userQueryClassifcationInstructions: String = """
+        Your task is to classify the user input is a question, a personal memory, or neither 
+    """
 }
 
 // GENERABLES
-@Generable(description: "Classification of user input as a memory, a personal query, or invalid")
+@Generable(description: "Classification of user input as a memory, a personal 'when' question, or neither")
 enum UserQueryClassification {
     case memory(String)
     case query(String)
@@ -108,24 +131,24 @@ enum UserQueryClassification {
     }
 }
 
-@Generable(description: "Classification as a 'when' question or not")
-struct WhenQuestionClassification {
+@Generable(description: "Classification as a question or not")
+struct QuestionClassification {
     
 //    @Guide(description: "Boolean for whether the question is a 'when' question")
-    let isWhenQuestion: Bool
+    let isQuestion: Bool
     
 //    @Guide(description: "Question itself, or empty string")
     let question: String
 }
 
-@Generable(description: "Classification as a personal memory to remember")
-struct MemoryToRememberClassification {
+@Generable(description: "Classification as a personal user fact or not")
+struct FactClassification {
     
 //    @Guide(description: "Boolean for whether the memory is to be remembered")
-    let shouldRemember: Bool
+    let isFact: Bool
     
 //    @Guide(description: "Memory itself, or empty string")
-    let memory: String
+    let fact: String
 }
 
 // TOOL

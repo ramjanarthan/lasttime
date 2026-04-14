@@ -22,6 +22,9 @@ struct Classification {
         DataEntry(text: "Who is the president?", inputType: .invalid),
         DataEntry(text: "I am hunry and want to eat", inputType: .invalid),
         DataEntry(text: "Why do I go to work?", inputType: .invalid),
+        DataEntry(text: "Note that I brushed my teeth today", inputType: .memory("I brushed my teeth")),
+        DataEntry(text: "Remember that I ate fruits this afternoon", inputType: .memory("I ate fruits this afternoon"))
+
     ]
     
     @Test func classification() async throws {
