@@ -9,11 +9,17 @@ import Foundation
 import NaturalLanguage
 
 class MemoryManager {
-    let memories = [
+    private var memories: [String] = []
+    
+    private let demoMemories: [String] = [
         "I ate coffee at the Bakery on 20th street",
         "I brushed my teeth last Tuesday",
         "Rahul went to the gym on monday"
     ]
+    
+    init() {
+        self.memories = readFromFile() ?? demoMemories
+    }
     
     func getRelevantMemories(for prompt: String) -> [String] {
         var relevantMemories: [String] = []
@@ -34,5 +40,21 @@ class MemoryManager {
         }
         
         return relevantMemories
+    }
+    
+    func saveMemory(_ memory: String) {
+        self.memories.append(memory)
+    }
+    
+    private func readFromFile() -> [String]? {
+        let results = UserDefaults.standard.value(forKey: "memories")
+        if let results = results as? [String] {
+            return results
+        }
+        return nil
+    }
+    
+    func writeToFile() {
+        UserDefaults.standard.set(self.memories, forKey: "memories")
     }
 }

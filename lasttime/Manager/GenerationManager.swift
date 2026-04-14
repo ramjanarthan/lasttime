@@ -9,7 +9,11 @@ import Foundation
 import FoundationModels
 
 class GenerationManager {
-    private let memoryManager = MemoryManager()
+    private let memoryManager: MemoryManager
+    
+    init(memoryManager: MemoryManager) {
+        self.memoryManager = memoryManager
+    }
     
     func getModelAvailability() -> SystemLanguageModel.Availability {
         return SystemLanguageModel.default.availability
@@ -29,7 +33,7 @@ class GenerationManager {
     private func classifyAsQuery(_ input: String) async throws -> QuestionClassification {
         let session = LanguageModelSession(model: .default)
         let prompt = Prompt {
-            "Classify this sentence as a personal question about the user: "
+            "Classify this sentence as a personal question about the user. General knowledge questions are not valid"
             "------------"
             "\(input)."
         }
@@ -133,7 +137,6 @@ enum UserQueryClassification {
 
 @Generable(description: "Classification as a question or not")
 struct QuestionClassification {
-    
 //    @Guide(description: "Boolean for whether the question is a 'when' question")
     let isQuestion: Bool
     
