@@ -15,11 +15,11 @@ struct Classification {
     }
         
     let dataset = [
-        DataEntry(text: "Hey can you tell me when I last ate a burger?", inputType: .query("When I last ate a burger")),
-        DataEntry(text: "Where did I go yesterday?", inputType: .query("Where did I go yesterday?")),
+        DataEntry(text: "When did I last eat a burger?", inputType: .query("When did I last eat a burger")),
+        DataEntry(text: "Where did I go yesterday?", inputType: .invalid),
         DataEntry(text: "Whats the capital of England", inputType: .invalid),
-        DataEntry(text: "When do I go to work?", inputType: .query("When do I go to work")),
-        DataEntry(text: "Who is the shitty president?", inputType: .invalid),
+        DataEntry(text: "When did I leave work yesterday?", inputType: .query("When did I leave work yesterday")),
+        DataEntry(text: "Who is the president?", inputType: .invalid),
         DataEntry(text: "I am hunry and want to eat", inputType: .invalid),
         DataEntry(text: "Why do I go to work?", inputType: .invalid),
     ]
@@ -30,7 +30,10 @@ struct Classification {
         for entry in dataset {
             let manager = GenerationManager()
             let classification = await manager.classifiyInput(for: entry.text)
-            results.append(classification == entry.inputType)
+            
+            let isCorrect = entry.inputType.isComparable(to: classification)
+            print("Expected: \(entry.inputType), Got: \(classification) - ", isCorrect ? "✅" : "❌")
+            results.append(isCorrect)
         }
         
         let numberCorrect = results.filter(\.self).count

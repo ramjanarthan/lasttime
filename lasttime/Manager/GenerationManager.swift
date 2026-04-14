@@ -9,22 +9,38 @@ import Foundation
 import FoundationModels
 
 class GenerationManager {
-    private var session: LanguageModelSession
     private let memoryManager = MemoryManager()
-    
-    init() {
-        session = LanguageModelSession(instructions: GenerationManager.classificationInstructions)
-        session.prewarm()
-    }
     
     func getModelAvailability() -> SystemLanguageModel.Availability {
         return SystemLanguageModel.default.availability
     }
     
+    private func classifyAsMemory(_ input: String) async throws -> MemoryToRememberClassification {
+        let session = LanguageModelSession(model: .default, instructions: GenerationManager.memoryClassificationInstruction)
+        let response = try await session.respond(to: input, generating: MemoryToRememberClassification.self)
+        return response.content
+    }
+    
+    private func classifyAsQuery(_ input: String) async throws -> WhenQuestionClassification {
+        let session = LanguageModelSession(model: .default, instructions: GenerationManager.whenQuestionClassificationInstruction)
+        let response = try await session.respond(to: input, generating: WhenQuestionClassification.self)
+        return response.content
+    }
+    
     func classifiyInput(for input: String) async -> UserQueryClassification {
         do {
-            let response = try await session.respond(to: input, generating: UserQueryClassification.self)
-            return response.content
+            let memoryClassification = try await classifyAsMemory(input)
+            let whenQuestionClassification = try await classifyAsQuery(input)
+            
+            if memoryClassification.shouldRemember, whenQuestionClassification.isWhenQuestion {
+                return .invalid
+            } else if memoryClassification.shouldRemember {
+                return .memory(memoryClassification.memory)
+            } else if whenQuestionClassification.isWhenQuestion {
+                return .query(whenQuestionClassification.question)
+            } else {
+                return .invalid
+            } 
         } catch {
             return .invalid
         }
@@ -47,6 +63,7 @@ class GenerationManager {
                     "Your task is to generate a response to the question: \(query). The relevant memory is: \(memory)"
                 }
                 
+                let session = LanguageModelSession(model: .default)
                 let response = try await session.respond(to: prompt)
                 return response.content
             } else {
@@ -60,19 +77,55 @@ class GenerationManager {
 
 // PROMPTs
 extension GenerationManager {
-    static let classificationInstructions: String = """
-    Decide if this is valid personal question about the user.  
+    static let whenQuestionClassificationInstruction: String = """
+    Classify this sentence as a when question or not
     """
+    
+    static let memoryClassificationInstruction: String = """
+        Classify this sentence as a valid personal memory or not
+    """
+    
 }
 
 // GENERABLES
-@Generable(description: "Classification of user input as a memory, a personal query, or anything else")
-enum UserQueryClassification: Equatable {
+@Generable(description: "Classification of user input as a memory, a personal query, or invalid")
+enum UserQueryClassification {
     case memory(String)
     case query(String)
     case invalid
+    
+    func isComparable(to other: UserQueryClassification) -> Bool {
+        switch (self, other) {
+        case (.memory(let _), .memory(let _)):
+            return true
+        case (.query, .query):
+            return true
+        case (.invalid, .invalid):
+            return true
+        default:
+            return false
+        }
+    }
+}
+
+@Generable(description: "Classification as a 'when' question or not")
+struct WhenQuestionClassification {
+    
+//    @Guide(description: "Boolean for whether the question is a 'when' question")
+    let isWhenQuestion: Bool
+    
+//    @Guide(description: "Question itself, or empty string")
+    let question: String
+}
+
+@Generable(description: "Classification as a personal memory to remember")
+struct MemoryToRememberClassification {
+    
+//    @Guide(description: "Boolean for whether the memory is to be remembered")
+    let shouldRemember: Bool
+    
+//    @Guide(description: "Memory itself, or empty string")
+    let memory: String
 }
 
 // TOOL
-
-

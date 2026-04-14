@@ -11,7 +11,17 @@ import SwiftUI
 struct lasttimeApp: App {
     var body: some Scene {
         WindowGroup {
-            AudioAgentInteractionView()
+            if ProcessInfo.processInfo.isTesting {
+                Text("Testing")
+            } else {
+                AudioAgentInteractionView()
+            }
         }
+    }
+}
+
+extension ProcessInfo {
+    var isTesting: Bool {
+        environment["XCTestSessionIdentifier"] != nil
     }
 }
