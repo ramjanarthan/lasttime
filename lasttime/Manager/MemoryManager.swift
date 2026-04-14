@@ -25,7 +25,8 @@ class MemoryManager {
         var relevantMemories: [String] = []
         
         let target_dictionary = Set(prompt.split(separator: " ").map({ x in
-            x.lowercased()
+            var filtered = x.filter({ !$0.isPunctuation })
+            return filtered.lowercased()
         }))
         
         for memory in memories {

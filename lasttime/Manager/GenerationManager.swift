@@ -62,9 +62,6 @@ class GenerationManager {
             } else {
                 return .invalid
             }
-//            let session = LanguageModelSession(model: .default, instructions: GenerationManager.userQueryClassifcationInstructions)
-//            let response = try await session.respond(to: input, generating: UserQueryClassification.self)
-//            return response.content
         } catch {
             return .invalid
         }
@@ -77,14 +74,25 @@ class GenerationManager {
         
         switch response {
         case .memory(let memory):
-            return "I'm saving this as a memory -- \(memory)"
+            memoryManager.saveMemory(memory)
+            let prompt = Prompt {
+                "Generate a response to acknowledge the previous fact provided by the user: "
+                "\(memory)"
+            }
+            
+            let session = LanguageModelSession(model: .default)
+            let response = try await session.respond(to: prompt)
+            return response.content
         case .query(let query):
             let valid_memories = memoryManager.getRelevantMemories(for: query)
             if let memory = valid_memories.first {
                 print("The relevant memory is: \(memory)")
                 
                 let prompt = Prompt {
-                    "Your task is to generate a response to the question: \(query). The relevant memory is: \(memory)"
+                    "Your task is to generate a respond to the question: "
+                    "\(query)."
+                    "The relevant memory is:"
+                    "\(memory)"
                 }
                 
                 let session = LanguageModelSession(model: .default)

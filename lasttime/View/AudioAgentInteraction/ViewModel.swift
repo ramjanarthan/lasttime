@@ -32,8 +32,9 @@ extension AudioAgentInteractionView {
         
         private let audioManager = AudioManager()
         private let transcriptionManager = TranscriptionManager()
-        private let generationManager = GenerationManager()
-        
+        private let memoryManager = MemoryManager()
+        private let generationManager: GenerationManager
+
         private var transcriptionObservationTask: Task<(), Error>?
         
         private func requestPermission() async -> Bool {
@@ -56,6 +57,8 @@ extension AudioAgentInteractionView {
         }
         
         init() {
+            self.generationManager = GenerationManager(memoryManager: memoryManager)
+
             switch generationManager.getModelAvailability() {
             case .unavailable(let reason):
                 switch reason {
