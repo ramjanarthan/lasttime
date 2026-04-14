@@ -393,6 +393,7 @@
 				ENABLE_RESOURCE_ACCESS_AUDIO_INPUT = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = lasttime/Info.plist;
+				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Used for a better UX";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Used to remember your important (and not so important) things";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -427,6 +428,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = lasttime/Info.plist;
+				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Used for a better UX";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Used to remember your important (and not so important) things";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

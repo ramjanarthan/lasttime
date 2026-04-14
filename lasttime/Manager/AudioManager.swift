@@ -43,6 +43,7 @@ class AudioManager {
     
     func stopAudioStream() {
         guard audioTapInstalled else { return }
+        print("Stopping audio stream")
         
         self.audioBufferStreamBuilder.finish()
         

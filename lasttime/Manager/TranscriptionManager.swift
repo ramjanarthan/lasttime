@@ -32,7 +32,9 @@ class TranscriptionManager {
     private var recogniserTask: Task<(), Error>?
     private var audioProcessingTask: Task<(), Error>?
     private var analyzerTask: Task<(), Error>?
-
+    
+    private var isSetup: Bool = false
+    
     func requestSpeechPermission() async -> Bool {
         let status = await withCheckedContinuation { continuation in
             return SFSpeechRecognizer.requestAuthorization { status in
@@ -48,6 +50,11 @@ class TranscriptionManager {
     }
     
     func setup() async throws {
+        guard !isSetup else {
+            return
+        }
+        
+        
         transcriber = SpeechTranscriber(
             locale: Locale.current,
             preset: .progressiveTranscription
@@ -59,18 +66,19 @@ class TranscriptionManager {
         
         analyzer = SpeechAnalyzer(modules: [transcriber])
         analyzerFormat = await SpeechAnalyzer.bestAvailableAudioFormat(compatibleWith: [transcriber])
+        try await analyzer?.prepareToAnalyze(in: analyzerFormat)
         
         guard analyzerFormat != nil else {
             throw TranscriptionError.processingError
         }
+        
+        isSetup = true
     }
     
     func startTranscription(audioBufferStream: AsyncStream<AVAudioPCMBuffer>) async throws -> AsyncStream<TranscriptionUpdate>  {
         guard let transcriber else {
             throw TranscriptionError.transcriptionCreationError
         }
-        
-        try await analyzer?.prepareToAnalyze(in: analyzerFormat)
         
         let (inputSequence, inputBuilder) = AsyncStream<AnalyzerInput>.makeStream()
         self.analyzerInputBuilder = inputBuilder
