@@ -1,9 +1,5 @@
 """Python mirror of the Swift generation manager for experimentation."""
-
-from __future__ import annotations
-
 import asyncio
-from dataclasses import dataclass
 from typing import Callable, List, Optional
 import apple_fm_sdk as fm
 from inputs import *
@@ -34,7 +30,6 @@ class GenerationManager:
     def __init__(
         self,
         memory_store: Optional[MemoryStore] = None,
-        use_heuristics_only: bool = True,
     ) -> None:
         self.memory_store = memory_store or MemoryStore()
         self.memory_prompt = DEFAULT_MEMORY_PROMPT
@@ -44,13 +39,13 @@ class GenerationManager:
         cleaned = text.strip()
         session = fm.LanguageModelSession(instructions=DEFAULT_MEMORY_SESSION_INSTRUCTIONS)
         prompt = self._build_prompt(self.memory_prompt, cleaned)
-        await session.respond(prompt, generating: FactClassification)
+        return await session.respond(prompt, generating=FactClassification)
 
     async def classify_as_query(self, text: str) -> QuestionClassification:
         cleaned = text.strip()
         session = fm.LanguageModelSession(instructions=DEFAULT_QUERY_SESSION_INSTRUCTIONS)
         prompt = self._build_prompt(self.query_prompt, cleaned)
-        await session.respond(prompt, generating: QuestionClassification)
+        return await session.respond(prompt, generating=QuestionClassification)
 
     async def classify_input(self, text: str) -> UserQueryClassification:
         memory_result = await self.classify_as_memory(text)
@@ -95,3 +90,11 @@ class GenerationManager:
 
     def _build_prompt(self, instruction: str, text: str) -> str:
         return f"{instruction}\n------------\n{text}."
+
+# def main() -> None:
+#     manager = GenerationManager()
+#     results = asyncio.run(manager.classify_input("When did I last go to the gym?"))
+#     print(results)
+
+# if __name__ == "__main__":
+#     main()

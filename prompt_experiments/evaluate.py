@@ -1,7 +1,4 @@
 """Simple harness that runs the generation manager against `dataset.json`."""
-
-from __future__ import annotations
-
 import argparse
 import asyncio
 import json
@@ -51,7 +48,6 @@ def summarize(results: List[Dict[str, Any]], verbose: bool) -> None:
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Evaluate prompt heuristics against the shared dataset")
-    parser.add_argument("--with-model", action="store_true", help="Enable calls to `apple_fm_sdk` (macOS only)")
     parser.add_argument("--verbose", "-v", action="store_true", help="Print every mismatch")
     return parser.parse_args()
 
@@ -59,10 +55,9 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     dataset = load_dataset()
-    manager = GenerationManager(use_heuristics_only=not args.with_model)
+    manager = GenerationManager()
     results = asyncio.run(evaluate_entries(dataset, manager))
     summarize(results, verbose=args.verbose)
-
 
 if __name__ == "__main__":
     main()
