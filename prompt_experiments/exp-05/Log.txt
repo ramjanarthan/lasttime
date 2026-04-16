@@ -1,0 +1,3 @@
+Ran python evaluate.py after enriching both prompts with checklist steps, memory/query examples, and explicit guidance to treat memory-cue statements as memories even when question words appear.
+- Accuracy: 30/37 (81.1%); we now cross the 80% threshold purely via prompt adjustments.
+- Remaining mismatches still stem from a few memory statements that are misread as queries, but recall accuracy already meets the target without heuristics.

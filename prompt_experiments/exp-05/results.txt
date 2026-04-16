@@ -1,0 +1,8 @@
+30/37 correct (81.1% accuracy)
+7 mismatches
+- text: I went for a hike last Sunday morning. (canonical: I went for a hike last Sunday morning) | expected: memory | got: query
+- text: Just so you know, I started a new book this evening. (canonical: I started a new book this evening) | expected: memory | got: invalid
+- text: I drank coffee at the new roastery on Friday. (canonical: I drank coffee at the new roastery on Friday) | expected: memory | got: query
+- text: Put this in memory: I finished the quarterly report on Thursday. (canonical: I finished the quarterly report on Thursday) | expected: memory | got: query
+- text: Keep in mind that I tried the new Italian place on Thursday night. (canonical: I tried the new Italian place on Thursday night) | expected: memory | got: invalid
+  ...and 2 more

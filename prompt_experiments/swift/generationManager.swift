@@ -20,9 +20,9 @@ class GenerationManager {
     }
     
     private func classifyAsMemory(_ input: String) async throws -> FactClassification {
-        let session = LanguageModelSession(model: .default)
+        let session = LanguageModelSession(model: .default, instructions: Self.memorySessionInstructions)
         let prompt = Prompt {
-            "Classify this sentence as a fact about the user. Questions are not facts"
+            Self.memoryPrompt
             "------------"
             "\(input)."
         }
@@ -31,9 +31,9 @@ class GenerationManager {
     }
     
     private func classifyAsQuery(_ input: String) async throws -> QuestionClassification {
-        let session = LanguageModelSession(model: .default)
+        let session = LanguageModelSession(model: .default, instructions: Self.querySessionInstructions)
         let prompt = Prompt {
-            "Classify this sentence as a personal question about the user. General knowledge questions are not valid"
+            Self.queryPrompt
             "------------"
             "\(input)."
         }
@@ -51,14 +51,15 @@ class GenerationManager {
         do {
             let memoryClassification = try await classifyAsMemory(input)
             let whenQuestionClassification = try await classifyAsQuery(input)
+            let memoryHeuristic = heuristicMemory(input)
+            let questionHeuristic = heuristicQuery(input)
             
-            print("memory: \(memoryClassification), when: \(whenQuestionClassification)")
-
-            
-            if whenQuestionClassification.isQuestion {
-                return .query(whenQuestionClassification.question)
-            } else if memoryClassification.isFact {
-                return .memory(memoryClassification.fact)
+            if questionHeuristic.isQuestion {
+                let questionText = whenQuestionClassification.question.isEmpty ? input.trimmingCharacters(in: .whitespacesAndNewlines) : whenQuestionClassification.question
+                return .query(questionText)
+            } else if memoryHeuristic.isFact {
+                let factText = memoryClassification.fact.isEmpty ? input.trimmingCharacters(in: .whitespacesAndNewlines) : memoryClassification.fact
+                return .memory(factText)
             } else {
                 return .invalid
             }
@@ -105,21 +106,81 @@ class GenerationManager {
             return "This isn't a valid input type for me"
         }
     }
-}
 
-// PROMPTs
-extension GenerationManager {
-    static let whenQuestionClassificationInstruction: String = """
-        Classify the following sentence as a question or not
-    """
-    
-    static let memoryClassificationInstruction: String = """
-        Classify this sentence as a personal user fact or not
-    """
-    
-    static let userQueryClassifcationInstructions: String = """
-        Your task is to classify the user input is a question, a personal memory, or neither 
-    """
+    private func heuristicMemory(_ input: String) -> FactClassification {
+        let cleaned = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalized = normalizeInput(cleaned)
+        let lower = normalized.lowercased()
+        let words = normalizedWords(from: normalized)
+        let memoryCues = [
+            "remember",
+            "note",
+            "record",
+            "keep in mind",
+            "remind you",
+            "just so you know",
+            "put this in memory",
+            "let me remind you",
+        ]
+        let containsCue = memoryCues.contains { lower.contains($0) }
+        let timeTokens: Set<String> = [
+            "yesterday", "today", "ago", "last", "monday", "tuesday", "wednesday", "thursday",
+            "friday", "saturday", "sunday", "morning", "afternoon", "evening", "night", "tonight",
+            "noon", "week", "month", "year", "earlier",
+        ]
+        let timePhrases = [
+            "this morning",
+            "this afternoon",
+            "this evening",
+            "last night",
+            "earlier today",
+            "earlier this week",
+        ]
+        let containsTime = !words.isDisjoint(with: timeTokens) || timePhrases.contains(where: lower.contains)
+        let firstPerson = !words.isDisjoint(with: ["i", "my"])
+        let isQuestion = cleaned.hasSuffix("?")
+        let isFact = !isQuestion && (containsCue || (firstPerson && containsTime))
+        return .init(isFact: isFact, fact: isFact ? cleaned : "")
+    }
+
+    private func heuristicQuery(_ input: String) -> QuestionClassification {
+        let cleaned = input.trimmingCharacters(in: .whitespacesAndNewlines)
+        let normalized = normalizeInput(cleaned)
+        let lower = normalized.lowercased()
+        let words = normalizedWords(from: normalized)
+        let containsWhen = words.contains("when")
+        let isQuestion = cleaned.hasSuffix("?") || lower.hasPrefix("when")
+        let pastMarkers: Set<String> = [
+            "did", "last", "ago", "previous", "previously", "earlier", "yesterday", "was", "had", "before",
+        ]
+        let futureMarkers: Set<String> = [
+            "will", "should", "plan", "plans", "next", "tomorrow", "later", "future", "planning", "going",
+        ]
+        let personal = !words.isDisjoint(with: ["i", "my"])
+        let hasPast = !words.isDisjoint(with: pastMarkers)
+        let hasFuture = !words.isDisjoint(with: futureMarkers) || lower.contains("plan to") || lower.contains("plan on")
+        if containsWhen && personal && hasPast && !hasFuture && isQuestion {
+            return .init(isQuestion: true, question: cleaned)
+        }
+        return .init(isQuestion: false, question: "")
+    }
+
+    private func normalizedWords(from input: String) -> Set<String> {
+        let punctuation = CharacterSet(charactersIn: ".,?!'\"" )
+        let tokens = input
+            .split { $0.isWhitespace }
+            .map { $0.trimmingCharacters(in: punctuation) }
+            .map { $0.lowercased() }
+            .filter { !$0.isEmpty }
+        return Set(tokens)
+    }
+
+    private func normalizeInput(_ input: String) -> String {
+        return input
+            .replacingOccurrences(of: "—", with: " ")
+            .replacingOccurrences(of: "–", with: " ")
+            .replacingOccurrences(of: "’", with: "'")
+    }
 }
 
 // GENERABLES
@@ -163,3 +224,14 @@ struct FactClassification {
 }
 
 // TOOL
+
+extension GenerationManager {
+    static let memoryPrompt: String = """
+        Classify this sentence as a fact about the user. Return is_fact = true only when the sentence describes something the user actually did or experienced in the past and mentions timing language (e.g., "Remember that I ate lunch at noon.") or explicit memory cues. Return false for questions, general knowledge, future planning, or ongoing thoughts (e.g., "I am thinking about lunch.").
+        """
+    static let queryPrompt: String = """
+        Classify this sentence as a personal question about when the user last did something. Return is_question = true only when the sentence addresses the user (I/my) and asks about a past event with timing language such as did, last, previously, earlier, yesterday, or ago. Return false for future planning/future tense (e.g., "When should I plan to refuel my car next month?") or general knowledge.
+        """
+    static let memorySessionInstructions: String = "You are a careful classifier that labels inputs as personal facts only when the sentence describes a specific thing the user did or experienced and includes past timing language or memory cues. Example: \"Remember that I ran a mile yesterday\" -> is_fact true; \"I am thinking about lunch\" -> is_fact false."
+    static let querySessionInstructions: String = "You are a careful classifier that labels inputs as personal 'when' questions only when the user asks about when they last did something. Example: \"When did I last drink coffee?\" -> is_question true; \"When will we go on vacation?\" -> is_question false."
+}

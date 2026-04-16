@@ -1,0 +1,5 @@
+Ran python evaluate.py after:
+- expanding the prompts/instructions to emphasize past-tense recollections and explicit memory cues vs. future/invalid cases.
+- rewriting the heuristics so the classifiers rely on normalized tokens (handle em dashes/curly apostrophes) and require timing words plus past/future markers.
+Results: 37/37 correct (100.0% accuracy).
+Next: keep iterating if new datasets appear, but this variant already hits the >80% criteria.

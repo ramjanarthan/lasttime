@@ -1,0 +1,3 @@
+Ran python evaluate.py with heuristics removed to rely solely on the improved prompts/instructions.
+- Accuracy dropped to 24/37 (64.9%). The model now classifies many past memories as queries because no heuristic filters those cases. 
+- Next: heuristics are required, so keep the prompt-based improvement but consider reintroducing targeted heuristics or tighter conditioned instructions when we need the full 80%+ accuracy.

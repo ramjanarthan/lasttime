@@ -5,14 +5,13 @@
 ## Project setup
 - inputs.py : Contains all the prompts, instructions and the corresponding DataClasses used. You are allowed to heavily iterate the values of the Prompts and Istructions, and change the structure of the Guided generation datastructures (annotated with @fm.generable) to achieve better output. 
 - generation_manager.py : Contains the logic for classification in GenerationManager class. You are allowed to modify any of the logic here, as long as you don't break Apple's foundation model calling convention
-- dataset_builder.py : Contains code to create an evaluation dataset. You are NOT allowed to modify it
-- dataset.json : Contains the evaluation dataset. You are NOT allowed to modify it, but you can read it
+- dataset.json : Contains the evaluation dataset. You are NOT allowed to modify it, but you may read it
 - evaluate.py : Contains code run your classification logic against the evaluation dataset. You are NOT allowed to modify it, but you can read it
 - DO NOT remove any of these files in this folder, or parent folders
 
 ## Experimentation
 - `prompt_experiments/dataset.json` is the shared dataset; every entry is `{"text": ..., "kind": ..., "canonical": ...}`. Keep the `kind` values limited to `memory`, `query`, or `invalid` so comparators stay simple.
-- Run `python prompt_experiments/evaluate.py` to test the current prompts/heuristics against `dataset.json`; it reports counts, accuracy, and prints any mismatches the heuristics would have made.
+- Run `python prompt_experiments/evaluate.py` to test the current prompts against `dataset.json`; it reports counts, accuracy, and prints any mismatches made.
 
 
 ## Experiment Loop

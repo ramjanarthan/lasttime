@@ -1,0 +1,8 @@
+24/37 correct (64.9% accuracy)
+13 mismatches
+- text: Remember that I ate a cream sandwich today at noon. (canonical: I ate a cream sandwich today at noon) | expected: memory | got: query
+- text: Note that I brushed my teeth at 12pm yesterday. (canonical: I brushed my teeth at 12pm yesterday) | expected: memory | got: query
+- text: I went for a hike last Sunday morning. (canonical: I went for a hike last Sunday morning) | expected: memory | got: query
+- text: Just so you know, I started a new book this evening. (canonical: I started a new book this evening) | expected: memory | got: query
+- text: I drank coffee at the new roastery on Friday. (canonical: I drank coffee at the new roastery on Friday) | expected: memory | got: query
+  ...and 8 more
