@@ -1,0 +1,22 @@
+17/37 correct (45.9% accuracy)
+20 mismatches
+- text: Remember that I ate a cream sandwich today at noon. (canonical: I ate a cream sandwich today at noon) | expected: memory | got: query
+- text: Note that I brushed my teeth at 12pm yesterday. (canonical: I brushed my teeth at 12pm yesterday) | expected: memory | got: query
+- text: I went for a hike last Sunday morning. (canonical: I went for a hike last Sunday morning) | expected: memory | got: query
+- text: Just so you know, I started a new book this evening. (canonical: I started a new book this evening) | expected: memory | got: query
+- text: Put this in memory: I finished the quarterly report on Thursday. (canonical: I finished the quarterly report on Thursday) | expected: memory | got: query
+- text: I recorded that I ran eight miles this morning. (canonical: I ran eight miles this morning) | expected: memory | got: query
+- text: Remember, I had dinner with Julia on Tuesday. (canonical: I had dinner with Julia on Tuesday) | expected: memory | got: query
+- text: This afternoon I replaced my laptop battery. (canonical: I replaced my laptop battery this afternoon) | expected: memory | got: query
+- text: Keep in mind that I tried the new Italian place on Thursday night. (canonical: I tried the new Italian place on Thursday night) | expected: memory | got: query
+- text: Record that I replaced the air filter this morning. (canonical: I replaced the air filter this morning) | expected: memory | got: query
+- text: Let me remind you I finished the Swift draft yesterday evening. (canonical: I finished the Swift draft yesterday evening) | expected: memory | got: query
+- text: I am thinking about lunch. | expected: invalid | got: memory
+- text: When will we go on vacation? | expected: invalid | got: query
+- text: Where did I leave the keys? | expected: invalid | got: query
+- text: I am hungry and want to eat. | expected: invalid | got: memory
+- text: Tell me when to leave. | expected: invalid | got: query
+- text: When was the moon landing? | expected: invalid | got: query
+- text: When is the first day of spring? | expected: invalid | got: query
+- text: This is the time when we celebrate the solstice. | expected: invalid | got: memory
+- text: When should I plan to refuel my car next month? | expected: invalid | got: query

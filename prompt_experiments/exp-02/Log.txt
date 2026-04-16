@@ -1,0 +1,4 @@
+Ran `python evaluate.py -v` after tightening prompts/instructions (added detailed memory/query prompts and stricter session instructions).
+- Accuracy: 17/37 (45.9%); the model still treats nearly every memory as a query despite the clearer instructions, so the change helped only slightly.
+- Key decision: keep heuristics in place but rely on the model output; the heuristics now serve purely as fallback because the model still drives every classification.
+- Next step: change heuristics or prompt formats further (e.g., add explicit examples, change output format) to push accuracy above 80% per experiment loop requirement.

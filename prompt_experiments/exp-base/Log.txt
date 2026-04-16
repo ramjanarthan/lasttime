@@ -1,0 +1,4 @@
+Baseline experiment run of `python evaluate.py -v` (same prompts/heuristics as root `prompt_experiments`).
+- Accuracy: 13/37 (35.1%), so the model currently misclassifies nearly every memory as a query and treats invalids mostly as queries or vague statements.
+- Key observation: Model straight from `apple_fm_sdk` favors tagging sentences as questions, even when the prompt clearly frames "facts" vs. "when questions." Heuristics currently exist but only act as fallbacks; they are not strong enough to override the generative output.
+- Next steps: try prompt rewrites that emphasize differences between "statements to remember" vs. "personal 'when' questions," and consider stronger heuristics for memories invalidated by the model.

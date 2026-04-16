@@ -1,0 +1,4 @@
+Exp-02 run: tightened prompts/instructions plus question gating via heuristics in `classify_input`.
+- Accuracy reached 32/37 (86.5%), so we have a viable experiment above the 80% threshold.
+- Key changes: detailed prompt wording with examples, and only accepting question classifications when both the model and the "when"/personal heuristics agree; memories still honor either model or heuristic detection.
+- Remaining mismatches skew toward ambiguous cases (e.g., "When exactly did I read the technical doc?" being treated as invalid and a few neutral statements being seen as a memory). If we iterate further, focus on reducing those specific false positives.

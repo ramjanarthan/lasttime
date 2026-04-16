@@ -1,0 +1,7 @@
+32/37 correct (86.5% accuracy)
+5 mismatches
+- text: When exactly did I read the technical doc? (canonical: When exactly did I read the technical doc?) | expected: query | got: invalid
+- text: When did I last eat pizza (canonical: When did I last eat pizza) | expected: query | got: memory
+- text: I am thinking about lunch. | expected: invalid | got: memory
+- text: I am hungry and want to eat. | expected: invalid | got: memory
+- text: This is the time when we celebrate the solstice. | expected: invalid | got: memory

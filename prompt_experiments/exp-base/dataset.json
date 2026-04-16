@@ -1,0 +1,187 @@
+[
+  {
+    "text": "Remember that I ate a cream sandwich today at noon.",
+    "kind": "memory",
+    "canonical": "I ate a cream sandwich today at noon"
+  },
+  {
+    "text": "Note that I brushed my teeth at 12pm yesterday.",
+    "kind": "memory",
+    "canonical": "I brushed my teeth at 12pm yesterday"
+  },
+  {
+    "text": "I went for a hike last Sunday morning.",
+    "kind": "memory",
+    "canonical": "I went for a hike last Sunday morning"
+  },
+  {
+    "text": "Just so you know, I started a new book this evening.",
+    "kind": "memory",
+    "canonical": "I started a new book this evening"
+  },
+  {
+    "text": "I drank coffee at the new roastery on Friday.",
+    "kind": "memory",
+    "canonical": "I drank coffee at the new roastery on Friday"
+  },
+  {
+    "text": "Put this in memory: I finished the quarterly report on Thursday.",
+    "kind": "memory",
+    "canonical": "I finished the quarterly report on Thursday"
+  },
+  {
+    "text": "I recorded that I ran eight miles this morning.",
+    "kind": "memory",
+    "canonical": "I ran eight miles this morning"
+  },
+  {
+    "text": "Remember, I had dinner with Julia on Tuesday.",
+    "kind": "memory",
+    "canonical": "I had dinner with Julia on Tuesday"
+  },
+  {
+    "text": "This afternoon I replaced my laptop battery.",
+    "kind": "memory",
+    "canonical": "I replaced my laptop battery this afternoon"
+  },
+  {
+    "text": "Keep in mind that I tried the new Italian place on Thursday night.",
+    "kind": "memory",
+    "canonical": "I tried the new Italian place on Thursday night"
+  },
+  {
+    "text": "Record that I replaced the air filter this morning.",
+    "kind": "memory",
+    "canonical": "I replaced the air filter this morning"
+  },
+  {
+    "text": "Let me remind you I finished the Swift draft yesterday evening.",
+    "kind": "memory",
+    "canonical": "I finished the Swift draft yesterday evening"
+  },
+  {
+    "text": "When did I last eat a sandwich?",
+    "kind": "query",
+    "canonical": "When did I last eat a sandwich?"
+  },
+  {
+    "text": "Can you remind me when I brushed my teeth last?",
+    "kind": "query",
+    "canonical": "Can you remind me when I brushed my teeth last?"
+  },
+  {
+    "text": "When was the last time I jogged in the park?",
+    "kind": "query",
+    "canonical": "When was the last time I jogged in the park?"
+  },
+  {
+    "text": "I can’t recall—when did I take my medication yesterday?",
+    "kind": "query",
+    "canonical": "When did I take my medication yesterday?"
+  },
+  {
+    "text": "When did I go to the gym earlier this week?",
+    "kind": "query",
+    "canonical": "When did I go to the gym earlier this week?"
+  },
+  {
+    "text": "When did I drink coffee at the office?",
+    "kind": "query",
+    "canonical": "When did I drink coffee at the office?"
+  },
+  {
+    "text": "When did I last visit San Francisco?",
+    "kind": "query",
+    "canonical": "When did I last visit San Francisco?"
+  },
+  {
+    "text": "When was the last time I met with the product team?",
+    "kind": "query",
+    "canonical": "When was the last time I met with the product team?"
+  },
+  {
+    "text": "When exactly did I read the technical doc?",
+    "kind": "query",
+    "canonical": "When exactly did I read the technical doc?"
+  },
+  {
+    "text": "When did I last eat pizza",
+    "kind": "query",
+    "canonical": "When did I last eat pizza"
+  },
+  {
+    "text": "When did I last see the sunrise over the bay?",
+    "kind": "query",
+    "canonical": "When did I last see the sunrise over the bay?"
+  },
+  {
+    "text": "Could you tell me when I previously visited the office?",
+    "kind": "query",
+    "canonical": "Could you tell me when I previously visited the office?"
+  },
+  {
+    "text": "Do you remember when I last paid my license renewal?",
+    "kind": "query",
+    "canonical": "Do you remember when I last paid my license renewal?"
+  },
+  {
+    "text": "What is the capital of England?",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "I am thinking about lunch.",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "How did the meeting go?",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "When will we go on vacation?",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "Where did I leave the keys?",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "I am hungry and want to eat.",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "Tell me when to leave.",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "When was the moon landing?",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "When is the first day of spring?",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "This is the time when we celebrate the solstice.",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "Tell me a fact about the moon.",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "When should I plan to refuel my car next month?",
+    "kind": "invalid",
+    "canonical": null
+  }
+]
