@@ -55,11 +55,15 @@ extension MenuBarView {
         func handleEvent(_ event: AudioAgentEvent) async {
             switch (state, event) {
             case (_, .onAppear):
-                await startRecording()
-                await startTranscribing()
+                if !audioManager.isAudioStreamRunning {
+                    await setupAudioRecording()
+                    await setupTranscription()
+                    await startRecording()
+                } else {
+                    await startRecording()
+                }
             case (_, .onDisappear):
-                await stopTranscribing()
-                await stopRecording()
+                pauseRecording()
             case (_, .transcribing):
                 self.state = .transcribing
             case (_, .onFinishedTranscribing):
@@ -77,7 +81,7 @@ extension MenuBarView {
             
         }
 
-        func startRecording() async {
+        private func setupAudioRecording() async {
             guard await requestPermission() else {
                 await self.handleEvent(.onError("Please grant mic and speech analysis access in settings"))
                 return
@@ -87,6 +91,10 @@ extension MenuBarView {
                 return
             }
             
+            audioManager.setupAudioStream()
+        }
+        
+        func startRecording() async {
             do {
                 try audioManager.startAudioStream()
             } catch {
@@ -94,8 +102,11 @@ extension MenuBarView {
             }
         }
         
-        func startTranscribing() async {
+        func setupTranscription() async {
             do {
+                guard !transcriptionManager.isTranscribing else {
+                    return
+                }
                 try await transcriptionManager.setup()
                 let transcriptionUpdateStream = try await transcriptionManager.startTranscription(audioBufferStream: audioManager.audioBufferStream)
                 transcriptionObservationTask = Task { @MainActor in
@@ -131,6 +142,10 @@ extension MenuBarView {
                 task.cancel()
                 transcriptionObservationTask = nil
             }
+        }
+        
+        func pauseRecording() {
+            audioManager.pauseAudioStream()
         }
         
         func stopRecording() async {

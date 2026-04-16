@@ -34,6 +34,7 @@ class TranscriptionManager {
     private var analyzerTask: Task<(), Error>?
     
     private var isSetup: Bool = false
+    private(set) var isTranscribing: Bool = false
     
     func requestSpeechPermission() async -> Bool {
         let status = await withCheckedContinuation { continuation in
@@ -80,6 +81,8 @@ class TranscriptionManager {
             throw TranscriptionError.transcriptionCreationError
         }
         
+        isTranscribing = true
+        
         let (inputSequence, inputBuilder) = AsyncStream<AnalyzerInput>.makeStream()
         self.analyzerInputBuilder = inputBuilder
         
@@ -125,7 +128,7 @@ class TranscriptionManager {
         analyzerInputBuilder?.finish()
         transcriptionOutputBuidler?.finish()
         
-        try? await analyzer?.finalizeAndFinishThroughEndOfInput()
+//        try? await analyzer?.finalizeAndFinishThroughEndOfInput()
         
         recogniserTask?.cancel()
         audioProcessingTask?.cancel()
@@ -134,5 +137,7 @@ class TranscriptionManager {
         recogniserTask = nil
         audioProcessingTask = nil
         analyzerTask = nil
+        
+        isTranscribing = false
     }
 }

@@ -19,12 +19,13 @@ class AudioManager {
     }
     
     private var audioTapInstalled = false
-    var isAudioStreamRunning: Bool { audioTapInstalled } 
+    var isAudioStreamRunning: Bool { audioTapInstalled }
+
     func requestMicPermission() async -> Bool {
         return await AVAudioApplication.requestRecordPermission()
     }
     
-    func startAudioStream() throws {
+    func setupAudioStream() {
         guard !audioTapInstalled else { return }
         
         audioEngine.inputNode.installTap(
@@ -36,9 +37,17 @@ class AudioManager {
         }
         
         audioEngine.prepare()
-        try audioEngine.start()
         audioTapInstalled = true
+    }
+    
+    
+    func startAudioStream() throws {
+        try audioEngine.start()
         print("Starting audio stream")
+    }
+    
+    func pauseAudioStream() {
+        audioEngine.pause()
     }
     
     func stopAudioStream() {
