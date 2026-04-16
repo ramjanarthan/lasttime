@@ -14,7 +14,9 @@ class MemoryManager {
     private let demoMemories: [String] = [
         "I ate coffee at the Bakery on 20th street",
         "I brushed my teeth last Tuesday",
-        "Rahul went to the gym on monday"
+        "I went to the gym on monday",
+        "I walked the dog this afternoon",
+        "I bought a new set of sheets on 28th May"
     ]
     
     init() {
@@ -25,7 +27,7 @@ class MemoryManager {
         var relevantMemories: [String] = []
         
         let target_dictionary = Set(prompt.split(separator: " ").map({ x in
-            var filtered = x.filter({ !$0.isPunctuation })
+            let filtered = x.filter({ !$0.isPunctuation })
             return filtered.lowercased()
         }))
         

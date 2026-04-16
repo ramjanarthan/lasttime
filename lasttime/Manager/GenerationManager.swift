@@ -21,14 +21,14 @@ class GenerationManager {
     
     private func classifyAsMemory(_ input: String) async throws -> FactClassification {
         let session = LanguageModelSession(model: .default)
-        let prompt = build_prompt(prefix: GenerationManager.DEFAULT_MEMORY_PROMPT, userInput: input)
+        let prompt = build_prompt(prefix: GenerationManager.memoryClassificationPrompt, userInput: input)
         let response = try await session.respond(to: prompt, generating: FactClassification.self)
         return response.content
     }
     
     private func classifyAsQuery(_ input: String) async throws -> QuestionClassification {
         let session = LanguageModelSession(model: .default)
-        let prompt = build_prompt(prefix: GenerationManager.DEFAULT_QUERY_PROMPT, userInput: input)
+        let prompt = build_prompt(prefix: GenerationManager.queryClassificationPrompt, userInput: input)
         let response = try await session.respond(to: prompt, generating: QuestionClassification.self)
         
         let containsWhen = input.lowercased().contains("when")
@@ -69,18 +69,14 @@ class GenerationManager {
     
     func generateOutput(for input: String) async throws -> String {
         let response = await classifiyInput(for: input)
-        
-        print("Response: \(response)")
+       
+        LLogger.shared.debug("Classification: - \(response)")
         
         switch response {
         case .memory(let memory):
             memoryManager.saveMemory(memory)
-            let prompt = Prompt {
-                "Generate a response to acknowledge the previous fact provided by the user: "
-                "\(memory)"
-            }
-            
-            let session = LanguageModelSession(model: .default)
+            let session = LanguageModelSession(model: .default, instructions: GenerationManager.responseInstructions)
+            let prompt = build_prompt(prefix: GenerationManager.memoryResponsePrompt, userInput: memory)
             let response = try await session.respond(to: prompt)
             return response.content
         case .query(let query):
@@ -89,13 +85,14 @@ class GenerationManager {
                 print("The relevant memory is: \(memory)")
                 
                 let prompt = Prompt {
-                    "Your task is to generate a respond to the question: "
-                    "\(query)."
-                    "The relevant memory is:"
+                    GenerationManager.queryResponsePrompt
+                    "-----------"
+                    "\(query)"
+                    "-----------"
                     "\(memory)"
                 }
                 
-                let session = LanguageModelSession(model: .default)
+                let session = LanguageModelSession(model: .default, instructions: GenerationManager.responseInstructions)
                 let response = try await session.respond(to: prompt)
                 return response.content
             } else {
@@ -113,11 +110,9 @@ extension GenerationManager {
     
     static let memoryClassificationInstruction: String = "You are a careful classifier that labels inputs as personal facts only when the sentence describes a discrete thing the user personally did or experienced in the past and has clear timing or memory cues. Explicit memory prompts (remember, note, record, keep in mind) should return is_fact = true even if they mention question words. Always supply a confidence_score between 0 and 100: yield 90+ whenever you are certain (the decision threshold is 60), and keep it below 60 when the evidence is missing or contradictory."
     
-    static let userQueryClassifcationInstructions: String = """
-        Your task is to classify the user input is a question, a personal memory, or neither 
-    """
+    static let responseInstructions: String = "You are a helpful app that lets users remember things about themselves. Generate text that is factual, respectful, and appropriate for a casual conversation in a curt, concise tone. Never make up any details, and never answer questions that aren't based on the user's past experiences."
     
-    static let DEFAULT_MEMORY_PROMPT = """
+    static let memoryClassificationPrompt = """
     Classify this sentence as a fact about the user.
 
     Return is_fact = true only when all of the following are satisfied:
@@ -135,7 +130,7 @@ extension GenerationManager {
     When is_fact = true, set fact to the cleaned memory text and assign a confidence_score of 90+; when false, leave fact empty and keep confidence below 60.
     """
     
-    static let DEFAULT_QUERY_PROMPT = """
+    static let queryClassificationPrompt = """
     Classify this sentence as a personal question about when the user last did something.
 
     Return is_question = true only when all of the following are satisfied:
@@ -151,11 +146,19 @@ extension GenerationManager {
 
     When is_question = true, set question to the canonical question text and return a confidence_score of 90+; otherwise return an empty string and confidence below 60.
     """
+    
+    static let memoryResponsePrompt = """
+    The user has just provided a memory that was saved. Generate a simple response to acknowledge that this action has been carried out.    
+    """
+    
+    static let queryResponsePrompt = """
+    The user has just provided a question about a fact that they previously saved. Take a good look at the question the user asked, and the relevant memory retrieved from the store. Generate a simple response to the user to provide the answer to the question they are looking for. Do not answer in first person based on the memory, since it is from the perspective of the user. Here is the question that the user asked, followed by the memory that was retrieved:    
+    """
 }
 
 // GENERABLES
 @Generable(description: "Classification of user input as a memory, a personal 'when' question, or neither")
-enum UserQueryClassification {
+enum UserQueryClassification: CustomStringConvertible {
     case memory(String)
     case query(String)
     case invalid
@@ -170,6 +173,17 @@ enum UserQueryClassification {
             return true
         default:
             return false
+        }
+    }
+    
+    var description: String {
+        switch self {
+        case .memory(let memory):
+            return "Memory - {\(memory)}"
+        case .query(let query):
+            return "Query - {\(query)}"
+        case .invalid:
+            return "Invalid"
         }
     }
 }
