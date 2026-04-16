@@ -38,3 +38,6 @@ playground.xcworkspace
 
 # Swift Package Manager
 # Package.resolved
+
+# Python
+/**/__pycache__
