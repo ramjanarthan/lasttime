@@ -12,7 +12,7 @@ class MemoryStore:
     """Simple in-memory store mirroring lasttime/Manager/MemoryManager.swift."""
 
     def __init__(self, seed: Optional[List[str]] = None) -> None:
-        self.memories: List[str] = list(seed or DEMO_MEMORIES)
+        self.memories: List[str] = list(seed or [])
 
     def get_relevant_memories(self, prompt: str) -> List[str]:
         target_words = {word.strip(".,?!") for word in prompt.lower().split() if word}
@@ -28,46 +28,40 @@ class MemoryStore:
         self.memories.append(memory)
 
 
-ModelSessionFactory = Callable[[], "fm.LanguageModelSession"] if fm else Callable[[], None]
-
-
 class GenerationManager:
     """Encapsulates prompt tuning & evaluation logic, currently using heuristics."""
 
     def __init__(
         self,
         memory_store: Optional[MemoryStore] = None,
-        session_factory: Optional[ModelSessionFactory] = None,
         use_heuristics_only: bool = True,
     ) -> None:
         self.memory_store = memory_store or MemoryStore()
         self.memory_prompt = DEFAULT_MEMORY_PROMPT
         self.query_prompt = DEFAULT_QUERY_PROMPT
-        self._session_factory = session_factory
-        self._use_model = not use_heuristics_only and fm is not None
 
     async def classify_as_memory(self, text: str) -> FactClassification:
         cleaned = text.strip()
-        if self._use_model and self._session_factory:
-            prompt = self._build_prompt(self.memory_prompt, cleaned)
-            await self._respond_with_model(prompt)
-            # TODO: parse FactClassification from the model response once we can control _Generable_ in Python.
-        return self._heuristic_memory(cleaned)
+        session = fm.LanguageModelSession(instructions=DEFAULT_MEMORY_SESSION_INSTRUCTIONS)
+        prompt = self._build_prompt(self.memory_prompt, cleaned)
+        await session.respond(prompt, generating: FactClassification)
 
     async def classify_as_query(self, text: str) -> QuestionClassification:
         cleaned = text.strip()
-        if self._use_model and self._session_factory:
-            prompt = self._build_prompt(self.query_prompt, cleaned)
-            await self._respond_with_model(prompt)
-            # TODO: parse QuestionClassification from the model response once we can control _Generable_ in Python.
-        return self._heuristic_query(cleaned)
+        session = fm.LanguageModelSession(instructions=DEFAULT_QUERY_SESSION_INSTRUCTIONS)
+        prompt = self._build_prompt(self.query_prompt, cleaned)
+        await session.respond(prompt, generating: QuestionClassification)
 
     async def classify_input(self, text: str) -> UserQueryClassification:
         memory_result = await self.classify_as_memory(text)
+        heuristic_memory_classification = self._heuristic_memory(text)
+
         question_result = await self.classify_as_query(text)
-        if question_result.is_question:
+        heuristic_question_classification = self._heuristic_query(text)
+
+        if question_result.is_question or heuristic_question_classification.is_question:
             return UserQueryClassification.query(question_result.question)
-        if memory_result.is_fact:
+        if memory_result.is_fact or heuristic_memory_classification.is_fact:
             return UserQueryClassification.memory(memory_result.fact)
         return UserQueryClassification.invalid()
 
@@ -80,9 +74,6 @@ class GenerationManager:
             memories = self.memory_store.get_relevant_memories(classification.value)
             return memories[0] if memories else "I couldn't find a relevant memory for that question."
         return "This isn't a valid input type for me"
-
-    def classify_sync(self, text: str) -> UserQueryClassification:
-        return asyncio.run(self.classify_input(text))
 
     def _heuristic_memory(self, text: str) -> FactClassification:
         lower = text.lower()
@@ -104,12 +95,3 @@ class GenerationManager:
 
     def _build_prompt(self, instruction: str, text: str) -> str:
         return f"{instruction}\n------------\n{text}."
-
-    async def _respond_with_model(self, prompt: str) -> str:
-        if not self._session_factory:
-            raise RuntimeError("No session factory registered for model calls")
-        session = self._session_factory()
-        response = await session.respond(prompt)
-        if hasattr(response, "content"):
-            return response.content
-        return str(response)
