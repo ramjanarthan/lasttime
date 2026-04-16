@@ -16,6 +16,8 @@ extension MenuBarView {
         private(set) var state: AudioAgentState = .idle
         
         private var shouldWipeUserInput: Bool = true
+        private var audioPermissionGranted: Bool = false
+        
         private(set) var userInput: TranscriptionModel?
         private(set) var systemResponse: GenerationModel?
         
@@ -82,11 +84,14 @@ extension MenuBarView {
         }
 
         private func setupAudioRecording() async {
-            guard await requestPermission() else {
-                await self.handleEvent(.onError("Please grant mic and speech analysis access in settings"))
-                return
+            if !audioPermissionGranted {
+                guard await requestPermission() else {
+                    await self.handleEvent(.onError("Please grant mic and speech analysis access in settings"))
+                    return
+                }
             }
             
+            audioPermissionGranted = true
             guard !audioManager.isAudioStreamRunning else {
                 return
             }
