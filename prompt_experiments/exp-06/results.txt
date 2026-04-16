@@ -1,0 +1,13 @@
+70/79 correct (88.6% accuracy)
+9 mismatches
+- text: I drank coffee at the new roastery on Friday. (canonical: I drank coffee at the new roastery on Friday) | expected: memory | got: query
+  confidence: 95
+- text: When did I last eat pizza (canonical: When did I last eat pizza) | expected: query | got: memory
+  confidence: 40
+- text: What is the capital of England? | expected: invalid | got: query
+  confidence: 90
+- text: How did the meeting go? | expected: invalid | got: query
+  confidence: 95
+- text: Where did I leave the keys? | expected: invalid | got: query
+  confidence: 90
+  ...and 4 more

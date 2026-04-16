@@ -1,0 +1,3 @@
+Ran python evaluate.py after adding lightweight heuristics plus stronger instructions that respect the limited local-context budget (avoid long narratives, trust explicit memory cues, and keep question prompts tight).
+- Accuracy: 70/79 (88.6%), meeting the >80% goal even with the expanded dataset.
+- Logged confidence scores for each mismatch so we can see when the model was certain yet still wrong; that should help the next tuning step when newer examples arrive.
