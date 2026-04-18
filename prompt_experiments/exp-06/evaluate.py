@@ -4,6 +4,7 @@ import asyncio
 import json
 from pathlib import Path
 from typing import Any, Dict, List
+import tqdm
 
 from generation_manager import GenerationManager, ClassificationDiagnostics
 
@@ -17,7 +18,7 @@ def load_dataset(path: Path = DATASET_PATH) -> List[Dict[str, Any]]:
 
 async def evaluate_entries(entries: List[Dict[str, Any]], manager: GenerationManager) -> List[Dict[str, Any]]:
     results: List[Dict[str, Any]] = []
-    for entry in entries:
+    for entry in tqdm.tqdm(entries):
         diagnostics: ClassificationDiagnostics = await manager.classify_input(entry["text"])
         prediction = diagnostics.final.kind
         confidence = None

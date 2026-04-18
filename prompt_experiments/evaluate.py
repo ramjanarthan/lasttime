@@ -4,8 +4,9 @@ import asyncio
 import json
 from pathlib import Path
 from typing import Any, Dict, List
+import tqdm
 
-from generation_manager import GenerationManager
+from generation_manager import GenerationManager, ClassificationDiagnostics
 
 DATASET_PATH = Path(__file__).parent / "dataset.json"
 
@@ -17,14 +18,23 @@ def load_dataset(path: Path = DATASET_PATH) -> List[Dict[str, Any]]:
 
 async def evaluate_entries(entries: List[Dict[str, Any]], manager: GenerationManager) -> List[Dict[str, Any]]:
     results: List[Dict[str, Any]] = []
-    for entry in entries:
-        classification = await manager.classify_input(entry["text"])
+    for entry in tqdm.tqdm(entries):
+        diagnostics: ClassificationDiagnostics = await manager.classify_input(entry["text"])
+        prediction = diagnostics.final.kind
+        confidence = None
+        if prediction == "memory":
+            confidence = diagnostics.memory.confidence_score
+        elif prediction == "query":
+            confidence = diagnostics.question.confidence_score
         results.append(
             {
                 "text": entry["text"],
                 "kind": entry["kind"],
                 "canonical": entry.get("canonical"),
-                "prediction": classification.kind,
+                "prediction": prediction,
+                "memory_confidence": diagnostics.memory.confidence_score,
+                "question_confidence": diagnostics.question.confidence_score,
+                "confidence": confidence,
             }
         )
     return results
@@ -42,6 +52,9 @@ def summarize(results: List[Dict[str, Any]], verbose: bool) -> None:
         for row in limit:
             canonical = f" (canonical: {row['canonical']})" if row.get("canonical") else ""
             print(f"- text: {row['text']}{canonical} | expected: {row['kind']} | got: {row['prediction']}")
+            confidence = row.get("confidence")
+            if confidence is not None:
+                print(f"  confidence: {confidence}")
         if not verbose and len(mismatches) > 5:
             print(f"  ...and {len(mismatches) - 5} more")
 

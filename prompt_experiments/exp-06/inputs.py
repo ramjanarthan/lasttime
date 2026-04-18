@@ -22,14 +22,7 @@ Return is_question = true only when all of the following are satisfied:
 1. The sentence is clearly a question and ends with a question mark (if there is no '?', return false regardless of other words).
 2. It mentions the user (I/my/me) and asks with timing words such as when, last, previously, earlier, or ago.
 3. It is not about future planning, general knowledge, or instructions to remember something (remember, note, record, keep in mind).
-
-Examples:
-- "When did I last eat a sandwich?" -> is_question true
-- "Note that I brushed my teeth at 12pm yesterday." -> is_question false
-
-Confidence: set confidence_score to a whole number between 0 and 100; use 90 or higher when you clearly satisfy the checklist, because the decision threshold is 60, and values near 40 when the input fails the guidelines.
-
-When is_question = true, set question to the canonical question text and return a confidence_score of 90+; otherwise return an empty string and confidence below 60."""
+"""
 
 DEFAULT_MEMORY_SESSION_INSTRUCTIONS = "You are a careful classifier that labels inputs as personal facts only when the sentence describes a discrete thing the user personally did or experienced in the past and has clear timing or memory cues. Explicit memory prompts (remember, note, record, keep in mind) should return is_fact = true even if they mention question words. Always supply a confidence_score between 0 and 100: yield 90+ whenever you are certain (the decision threshold is 60), and keep it below 60 when the evidence is missing or contradictory."
 

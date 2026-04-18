@@ -6,7 +6,8 @@
 ._*
 
 # Custom folder icons
-Icon
+Icon
+
 
 # Volume root files
 .DocumentRevisions-V100
@@ -41,3 +42,5 @@ playground.xcworkspace
 
 # Python
 /**/__pycache__
+
+/*.mlproj/*

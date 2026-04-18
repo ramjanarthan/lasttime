@@ -59,8 +59,8 @@ extension MenuBarView {
             case (_, .onAppear):
                 if !audioManager.isAudioStreamRunning {
                     await setupAudioRecording()
-                    await setupTranscription()
                     await startRecording()
+                    await setupTranscription()
                 } else {
                     await startRecording()
                 }

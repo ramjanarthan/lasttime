@@ -5,7 +5,7 @@
     "canonical": "I ate a cream sandwich today at noon"
   },
   {
-    "text": "Note that I brushed my teeth at 12pm yesterday.",
+    "text": "Can you note that I brushed my teeth at 12pm yesterday?",
     "kind": "memory",
     "canonical": "I brushed my teeth at 12pm yesterday"
   },
@@ -30,7 +30,7 @@
     "canonical": "I finished the quarterly report on Thursday"
   },
   {
-    "text": "I recorded that I ran eight miles this morning.",
+    "text": "Can you record that I ran eight miles this morning?",
     "kind": "memory",
     "canonical": "I ran eight miles this morning"
   },
@@ -40,7 +40,7 @@
     "canonical": "I had dinner with Julia on Tuesday"
   },
   {
-    "text": "This afternoon I replaced my laptop battery.",
+    "text": "Please note that this afternoon I replaced my laptop battery.",
     "kind": "memory",
     "canonical": "I replaced my laptop battery this afternoon"
   },
@@ -55,7 +55,7 @@
     "canonical": "I replaced the air filter this morning"
   },
   {
-    "text": "Let me remind you I finished the Swift draft yesterday evening.",
+    "text": "Can you remember that I finished the Swift draft yesterday evening?",
     "kind": "memory",
     "canonical": "I finished the Swift draft yesterday evening"
   },
@@ -200,7 +200,7 @@
     "canonical": "I gave the dog her flea medication this morning"
   },
   {
-    "text": "I just changed the oil in the car.",
+    "text": "Can you log that I changed the oil in the car?",
     "kind": "memory",
     "canonical": "I changed the oil in the car"
   },

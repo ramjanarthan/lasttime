@@ -154,7 +154,6 @@ struct StatusIndicatorView: View {
     }
 
     // MARK: - Dot Color
-
     private func dotColor(for state: AudioAgentState) -> Color {
         switch state {
         case .idle:
