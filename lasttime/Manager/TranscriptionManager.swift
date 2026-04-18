@@ -127,22 +127,17 @@ class TranscriptionManager {
     func stopTranscription() async {
         analyzerInputBuilder?.finish()
         transcriptionOutputBuidler?.finish()
-
+        
+        try? await analyzer?.finalizeAndFinishThroughEndOfInput()
+        
         recogniserTask?.cancel()
         audioProcessingTask?.cancel()
         analyzerTask?.cancel()
-
+        
         recogniserTask = nil
         audioProcessingTask = nil
         analyzerTask = nil
-
-        analyzerInputBuilder = nil
-        transcriptionOutputBuidler = nil
-        analyzerFormat = nil
-        analyzer = nil
-        transcriber = nil
-        converter = BufferConverter()
-        isSetup = false
+        
         isTranscribing = false
     }
 }

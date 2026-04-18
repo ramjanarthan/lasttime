@@ -8,7 +8,6 @@
 import Foundation
 import Speech
 import AVFoundation
-import os
 
 extension MenuBarView {
     @MainActor
@@ -58,9 +57,15 @@ extension MenuBarView {
         func handleEvent(_ event: AudioAgentEvent) async {
             switch (state, event) {
             case (_, .onAppear):
-                await prepareForAppear()
+                if !audioManager.isAudioStreamRunning {
+                    await setupAudioRecording()
+                    await setupTranscription()
+                    await startRecording()
+                } else {
+                    await startRecording()
+                }
             case (_, .onDisappear):
-                await shutdown()
+                pauseRecording()
             case (_, .transcribing):
                 self.state = .transcribing
             case (_, .onFinishedTranscribing):
@@ -71,14 +76,13 @@ extension MenuBarView {
                     self.state = .idle
                 }
             case (_, .onFinishedProcessing):
-                self.state = .responding
-                try? await Task.sleep(for: .milliseconds(850))
-                if case .responding = self.state {
-                    self.state = .idle
-                }
+                self.state = .idle
             case (_, .onError(let errorMessage)):
                 self.state = .error(errorMessage)
-                LLogger.shared.error("\(errorMessage)")
+            case (_, .onQuit):
+                await stopRecording()
+                await stopTranscribing()
+                self.state = .idle
             }
             
         }
@@ -97,17 +101,6 @@ extension MenuBarView {
             }
             
             audioManager.setupAudioStream()
-        }
-
-        private func prepareForAppear() async {
-            // Always tear down the previous transcription session so we never
-            // keep listening to a stale stream after the menu re-opens.
-            await stopTranscribing()
-            audioManager.stopAudioStream()
-
-            await setupAudioRecording()
-            await setupTranscription()
-            await startRecording()
         }
         
         func startRecording() async {
@@ -153,7 +146,7 @@ extension MenuBarView {
             }
         }
         
-        func stopTranscribing() async {
+        private func stopTranscribing() async {
             if let task = transcriptionObservationTask {
                 task.cancel()
                 transcriptionObservationTask = nil
@@ -161,18 +154,12 @@ extension MenuBarView {
             await transcriptionManager.stopTranscription()
         }
         
-        func pauseRecording() {
+        private func pauseRecording() {
             audioManager.pauseAudioStream()
         }
         
-        func stopRecording() async {
+        private func stopRecording() {
             audioManager.stopAudioStream()
-        }
-
-        func shutdown() async {
-            await stopTranscribing()
-            await stopRecording()
-            state = .idle
         }
         
         private func generateResponse(for interactionContent: TranscriptionModel) async {

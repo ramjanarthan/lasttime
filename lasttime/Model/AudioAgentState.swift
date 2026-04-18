@@ -22,4 +22,5 @@ enum AudioAgentEvent: Equatable {
     case transcribing
     case onFinishedTranscribing
     case onFinishedProcessing
+    case onQuit
 }

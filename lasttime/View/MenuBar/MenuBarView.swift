@@ -200,7 +200,7 @@ struct MenuBarView: View {
             // ── Quit Row ──
             Button(action: {
                 Task {
-                    await viewModel.shutdown()
+                    await viewModel.handleEvent(.onQuit)
                     await MainActor.run {
                         NSApp.terminate(nil)
                     }

@@ -99,6 +99,10 @@ extension AudioAgentInteractionView {
                 self.state = .idle
             case (_, .onError(let errorMessage)):
                 self.state = .error(errorMessage)
+            case (_, .onQuit):
+                await stopTranscribing()
+                await stopRecording()
+                self.state = .idle
             }
             
         }
