@@ -17,10 +17,10 @@ struct StatusIndicatorView: View {
     @State private var transitionProgress: CGFloat = 1.0
 
     private let dotCount = 5
-    private let dotSize: CGFloat = 6
-    private let spacing: CGFloat = 11
-    private let indicatorWidth: CGFloat = 70
-    private let indicatorHeight: CGFloat = 42
+    private let dotSize: CGFloat = 4
+    private let spacing: CGFloat = 8
+    private let indicatorWidth: CGFloat = 64
+    private let indicatorHeight: CGFloat = 40
 
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 60.0)) { timeline in
@@ -94,20 +94,24 @@ struct StatusIndicatorView: View {
 
         switch state {
         case .idle:
-            return CGPoint(x: baseX, y: centerY)
+            let frequency: CGFloat = 6.4
+            let wavePhase = phase * frequency + CGFloat(index) * .pi * 0.55
+            let amplitude: CGFloat = 1
+            let yOffset = sin(wavePhase) * amplitude
+            return CGPoint(x: baseX, y: centerY + yOffset)
 
         case .transcribing:
             let frequency: CGFloat = 6.4
             let wavePhase = phase * frequency + CGFloat(index) * .pi * 0.55
-            let amplitude: CGFloat = 8
+            let amplitude: CGFloat = 4
             let yOffset = sin(wavePhase) * amplitude
             return CGPoint(x: baseX, y: centerY + yOffset)
 
         case .processing:
-            let angularSpeed: CGFloat = 3.2
+            let angularSpeed: CGFloat = 2
             let baseAngle = phase * angularSpeed
             let angleForDot = baseAngle + (CGFloat(index) * (2 * .pi / CGFloat(dotCount)))
-            let radius: CGFloat = 11
+            let radius: CGFloat = 8
             let x = centerX + cos(angleForDot) * radius
             let y = centerY + sin(angleForDot) * radius
             return CGPoint(x: x, y: y)
@@ -180,19 +184,18 @@ struct MenuBarView: View {
     @State var viewModel = ViewModel()
     @Environment(\.scenePhase) private var scenePhase
 
-    private let panelWidth: CGFloat = 280
+    private let panelWidth: CGFloat = 240
 
     var body: some View {
         VStack(spacing: 0) {
-            VStack(spacing: 8) {
+            VStack(spacing: 0) {
                 userInputPanel
 
                 StatusIndicatorView(state: viewModel.state)
 
                 systemResponsePanel
             }
-            .padding(.horizontal, 12)
-            .padding(.top, 12)
+            .padding(.top, 8)
             .padding(.bottom, 8)
 
             Divider()
@@ -214,7 +217,7 @@ struct MenuBarView: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
         }
-        .frame(width: 300)
+        .frame(width: 280)
         .onAppear {
             Task {
                 await viewModel.handleEvent(.onAppear)
@@ -231,13 +234,12 @@ struct MenuBarView: View {
     }
 
     // MARK: - Subviews
-
     private var userInputPanel: some View {
         Text(viewModel.userInput?.displayContent ?? " ")
             .font(.system(.body, design: .rounded))
             .frame(width: panelWidth, alignment: .leading)
-            .frame(minHeight: 72, alignment: .topLeading)
-            .padding(10)
+            .frame(minHeight: 64, alignment: .topLeading)
+            .padding(8)
             .background(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .fill(.ultraThinMaterial)
@@ -252,8 +254,8 @@ struct MenuBarView: View {
         Text(viewModel.systemResponse?.displayContent ?? " ")
             .font(.system(.body, design: .rounded))
             .frame(width: panelWidth, alignment: .leading)
-            .frame(minHeight: 72, alignment: .topLeading)
-            .padding(10)
+            .frame(minHeight: 64, alignment: .topLeading)
+            .padding(8)
             .background(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .fill(.ultraThinMaterial)

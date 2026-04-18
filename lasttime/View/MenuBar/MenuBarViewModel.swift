@@ -80,7 +80,7 @@ extension MenuBarView {
             case (_, .onError(let errorMessage)):
                 self.state = .error(errorMessage)
             case (_, .onQuit):
-                await stopRecording()
+                stopRecording()
                 await stopTranscribing()
                 self.state = .idle
             }
