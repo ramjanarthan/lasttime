@@ -176,9 +176,9 @@ struct StatusIndicatorView: View {
 }
 
 // MARK: - Main MenuBarView
-
 struct MenuBarView: View {
     @State var viewModel = ViewModel()
+    @Environment(\.scenePhase) private var scenePhase
 
     private let panelWidth: CGFloat = 280
 
@@ -222,9 +222,12 @@ struct MenuBarView: View {
         }
         .onDisappear {
             Task {
-                await viewModel.shutdown()
+                await viewModel.handleEvent(.onDisappear)
             }
         }
+        .onChange(of: scenePhase, { oldValue, newValue in
+            print("Old value: \(oldValue) & New value: \(newValue)")
+        })
     }
 
     // MARK: - Subviews

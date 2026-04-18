@@ -9,6 +9,9 @@ import SwiftUI
 
 @main
 struct lasttimeApp: App {
+    @NSApplicationDelegateAdaptor private var appDelegate: MyAppDelegate
+    @Environment(\.scenePhase) private var scenePhase
+
     var body: some Scene {
         MenuBarExtra("LastTime", systemImage: "person.fill.questionmark") {
             if ProcessInfo.processInfo.isTesting {
@@ -18,6 +21,9 @@ struct lasttimeApp: App {
             }
         }
         .menuBarExtraStyle(.window)
+        .onChange(of: scenePhase, { oldValue, newValue in
+            print("Old value2: \(oldValue) & New value: \(newValue)")
+        })
     }
 }
 
