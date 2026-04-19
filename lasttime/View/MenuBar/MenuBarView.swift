@@ -250,7 +250,8 @@ struct MenuBarView: View {
     }
 
     private var systemResponsePanel: some View {
-        Text(viewModel.systemResponse?.displayContent ?? " ")
+        Text(viewModel.systemResponse?.displayContent ?? "")
+            
             .font(.system(.body, design: .rounded))
             .frame(width: panelWidth, alignment: .leading)
             .frame(minHeight: 64, alignment: .topLeading)

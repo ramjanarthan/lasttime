@@ -10,17 +10,17 @@
     "canonical": "I brushed my teeth at 12pm yesterday"
   },
   {
-    "text": "I went for a hike last Sunday morning.",
+    "text": "Log that I went for a hike last Sunday morning.",
     "kind": "memory",
     "canonical": "I went for a hike last Sunday morning"
   },
   {
-    "text": "Just so you know, I started a new book this evening.",
+    "text": "Please remember that I started a new book this evening.",
     "kind": "memory",
     "canonical": "I started a new book this evening"
   },
   {
-    "text": "I drank coffee at the new roastery on Friday.",
+    "text": "Can you remember that I drank coffee at the new roastery on Friday?",
     "kind": "memory",
     "canonical": "I drank coffee at the new roastery on Friday"
   },
@@ -190,7 +190,7 @@
     "canonical": null
   },
   {
-    "text": "Make a note that I watered the indoor plants today.",
+    "text": "Please make a note that I watered the indoor plants today.",
     "kind": "memory",
     "canonical": "I watered the indoor plants today"
   },
@@ -215,7 +215,7 @@
     "canonical": "I paid the electricity bill yesterday"
   },
   {
-    "text": "I got my hair cut this afternoon.",
+    "text": "Can you remember that I got my hair cut this afternoon?",
     "kind": "memory",
     "canonical": "I got my hair cut this afternoon"
   },
@@ -230,7 +230,7 @@
     "canonical": "I washed the bed sheets"
   },
   {
-    "text": "I flipped the mattress today.",
+    "text": "Save that I flipped the mattress today.",
     "kind": "memory",
     "canonical": "I flipped the mattress today"
   },
@@ -245,7 +245,7 @@
     "canonical": "I backed up my Mac to the external drive"
   },
   {
-    "text": "I replaced the smoke detector batteries last night.",
+    "text": "Save that I replaced the smoke detector batteries last night.",
     "kind": "memory",
     "canonical": "I replaced the smoke detector batteries last night"
   },
