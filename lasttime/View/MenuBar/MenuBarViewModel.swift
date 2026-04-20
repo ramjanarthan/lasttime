@@ -21,9 +21,9 @@ extension MenuBarView {
         private(set) var userInput: TranscriptionModel?
         private(set) var systemResponse: GenerationModel?
         
-        private let audioManager = AudioManager()
-        private let transcriptionManager = TranscriptionManager()
-        private let memoryManager = MemoryManager()
+        private let audioManager: AudioManager
+        private let transcriptionManager: TranscriptionManager
+        private let memoryManager: MemoryManager
         private let generationManager: GenerationManager
 
         private var transcriptionObservationTask: Task<(), Error>?
@@ -34,8 +34,11 @@ extension MenuBarView {
             return micPermission && speechPermission
         }
         
-        init() {
-            self.generationManager = GenerationManager(memoryManager: memoryManager)
+        init(audioManager: AudioManager, transcriptionManager: TranscriptionManager, memoryManager: MemoryManager, generationManager: GenerationManager) {
+            self.audioManager = audioManager
+            self.transcriptionManager = transcriptionManager
+            self.memoryManager = memoryManager
+            self.generationManager = generationManager
 
             switch generationManager.getModelAvailability() {
             case .unavailable(let reason):

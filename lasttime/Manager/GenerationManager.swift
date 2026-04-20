@@ -22,46 +22,43 @@ class GenerationManager {
     private func classifyAsMemory(_ input: String) async throws -> FactClassification {
         let session = LanguageModelSession(model: .default)
         let prompt = build_prompt(prefix: GenerationManager.memoryClassificationPrompt, userInput: input)
-        let response = try await session.respond(to: prompt, generating: Bool.self)
-        return FactClassification(isFact: response.content, fact: input, confidence_score: 0)
+        let response = try await session.respond(to: prompt, generating: FactClassification.self)
+        return response.content
     }
     
     private func classifyAsQuery(_ input: String) async throws -> QuestionClassification {
         let session = LanguageModelSession(model: .default)
         let prompt = build_prompt(prefix: GenerationManager.queryClassificationPrompt, userInput: input)
-        let response = try await session.respond(to: prompt, generating: Bool.self)
+        let response = try await session.respond(to: prompt, generating: QuestionClassification.self)
         
-        return QuestionClassification(isQuestion: response.content, question: input, confidence_score: 0)
-        
-//        let containsWhen = input.lowercased().contains("when")
-//        if containsWhen, response.content.isQuestion {
-//            return QuestionClassification(isQuestion: true, question: response.content.question, confidence_score: response.content.confidence_score)
-//        } else {
-//            return QuestionClassification(isQuestion: false, question: "", confidence_score: 0)
-//        }
+        let containsWhen = input.lowercased().contains("when")
+        if containsWhen, response.content.isQuestion {
+            return QuestionClassification(isQuestion: true, question: response.content.question, confidence_score: response.content.confidence_score)
+        } else {
+            return QuestionClassification(isQuestion: false, question: "", confidence_score: 0)
+        }
     }
     
     private func build_prompt(prefix: String, userInput: String) -> Prompt {
         return Prompt {
             prefix
-            "Input: \"\(userInput)\""
-            "Output:"
+            "------------"
+            userInput
         }
     }
     
     func classifiyInput(for input: String) async -> UserQueryClassification {
         do {
-            async let memoryClassification = classifyAsMemory(input)
-            async let whenQuestionClassification = classifyAsQuery(input)
+            let memoryClassification = try await classifyAsMemory(input)
+            let whenQuestionClassification = try await classifyAsQuery(input)
             
-            let (memoryResult, queryResult) = try await (memoryClassification, whenQuestionClassification)
-                    
-            print("memory: \(memoryResult), when: \(queryResult)")
+            print("memory: \(memoryClassification), when: \(whenQuestionClassification)")
+
             
-            if queryResult.isQuestion {
-                return .query(queryResult.question)
-            } else if memoryResult.isFact {
-                return .memory(memoryResult.fact)
+            if whenQuestionClassification.isQuestion {
+                return .query(whenQuestionClassification.question)
+            } else if memoryClassification.isFact {
+                return .memory(memoryClassification.fact)
             } else {
                 return .invalid
             }
@@ -116,38 +113,38 @@ extension GenerationManager {
     static let responseInstructions: String = "You are a helpful app that lets users remember things about themselves. Generate text that is factual, respectful, and appropriate for a casual conversation in a curt, concise tone. Never make up any details, and never answer questions that aren't based on the user's past experiences."
     
     static let memoryClassificationPrompt = """
-    Classify the sentence as a fact about the user.
-    
-    Input: "Can you note that I brushed my teeth at 12pm yesterday?"
-    Ouput: True
-    
-    Input: "Remember that I replaced my laptop battery this afternoon."
-    Output: True
-    
-    Input: "When did I last go to the gym?"
-    Output: False
-    
-    Input: "I am thinking about lunch."
-    Output: False
+    Classify this sentence as a fact about the user.
+
+    Return is_fact = true only when all of the following are satisfied:
+    1. The sentence is first-person and describes something the user already did or experienced in the past.
+    2. It contains explicit timing or memory cues such as yesterday, this morning, last night, remember, record, note, or keep in mind.
+    3. It is not presented as a question, future plan, speculation, or general knowledge statement.
+    4. Sentences that start with question words (when, where, how) but have no question mark should still be treated as memories when they clearly describe a past event.
+
+    Examples:
+    - "Remember that I replaced my laptop battery this afternoon." -> is_fact true
+    - "When did I last go to the gym?" -> is_fact false
+
+    Confidence: set confidence_score to a whole number between 0 and 100; use 90 or higher when you confidently meet all criteria because the decision threshold is 60, and use values around 40 when you are unsure or the signal is weak.
+
+    When is_fact = true, set fact to the cleaned memory text and assign a confidence_score of 90+; when false, leave fact empty and keep confidence below 60.
     """
     
     static let queryClassificationPrompt = """
     Classify this sentence as a personal question about when the user last did something.
 
-    Input: "When did I last deep clean the bathroom?"
-    Ouput: True
-    
-    Input: "When did I renew my passport?"
-    Output: True
-    
-    Input: "Where did I leave the keys?"
-    Output: False
-    
-    Input: "Tell me when to leave."
-    Output: False
-    
-    Input: "When was the moon landing?"
-    Output: False
+    Return is_question = true only when all of the following are satisfied:
+    1. The sentence is clearly a question and ends with a question mark (if there is no '?', return false regardless of other words).
+    2. It mentions the user (I/my/me) and asks with timing words such as when, last, previously, earlier, or ago.
+    3. It is not about future planning, general knowledge, or instructions to remember something (remember, note, record, keep in mind).
+
+    Examples:
+    - "When did I last eat a sandwich?" -> is_question true
+    - "Note that I brushed my teeth at 12pm yesterday." -> is_question false
+
+    Confidence: set confidence_score to a whole number between 0 and 100; use 90 or higher when you clearly satisfy the checklist, because the decision threshold is 60, and values near 40 when the input fails the guidelines.
+
+    When is_question = true, set question to the canonical question text and return a confidence_score of 90+; otherwise return an empty string and confidence below 60.
     """
     
     static let memoryResponsePrompt = """

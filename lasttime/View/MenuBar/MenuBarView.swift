@@ -180,10 +180,16 @@ struct StatusIndicatorView: View {
 
 // MARK: - Main MenuBarView
 struct MenuBarView: View {
-    @State var viewModel = ViewModel()
-    @Environment(\.scenePhase) private var scenePhase
-
     private let panelWidth: CGFloat = 240
+    
+    @State var viewModel: ViewModel
+    
+    init(container: AppContainer) {
+        viewModel = ViewModel(audioManager: container.audioManager,
+                              transcriptionManager: container.transcriptionManager,
+                              memoryManager: container.memoryManager,
+                              generationManager: container.generationManager)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -227,9 +233,6 @@ struct MenuBarView: View {
                 await viewModel.handleEvent(.onDisappear)
             }
         }
-        .onChange(of: scenePhase, { oldValue, newValue in
-            print("Old value: \(oldValue) & New value: \(newValue)")
-        })
     }
 
     // MARK: - Subviews
