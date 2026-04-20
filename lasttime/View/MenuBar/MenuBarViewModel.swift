@@ -11,30 +11,34 @@ import AVFoundation
 
 extension MenuBarView {
     @MainActor
-    @Observable
-    class ViewModel {
-        private(set) var state: AudioAgentState = .idle
-        
+    final class ViewModel: ObservableObject {
+        @Published private(set) var state: AudioAgentState = .idle
+
         private var shouldWipeUserInput: Bool = true
         private var audioPermissionGranted: Bool = false
-        
-        private(set) var userInput: TranscriptionModel?
-        private(set) var systemResponse: GenerationModel?
-        
+
+        @Published private(set) var userInput: TranscriptionModel?
+        @Published private(set) var systemResponse: GenerationModel?
+
         private let audioManager: AudioManager
         private let transcriptionManager: TranscriptionManager
         private let memoryManager: MemoryManager
         private let generationManager: GenerationManager
 
         private var transcriptionObservationTask: Task<(), Error>?
-        
+
         private func requestPermission() async -> Bool {
             let micPermission = await audioManager.requestMicPermission()
             let speechPermission = await transcriptionManager.requestSpeechPermission()
             return micPermission && speechPermission
         }
-        
-        init(audioManager: AudioManager, transcriptionManager: TranscriptionManager, memoryManager: MemoryManager, generationManager: GenerationManager) {
+
+        init(
+            audioManager: AudioManager,
+            transcriptionManager: TranscriptionManager,
+            memoryManager: MemoryManager,
+            generationManager: GenerationManager
+        ) {
             self.audioManager = audioManager
             self.transcriptionManager = transcriptionManager
             self.memoryManager = memoryManager
@@ -56,7 +60,7 @@ extension MenuBarView {
                 break
             }
         }
-        
+
         func handleEvent(_ event: AudioAgentEvent) async {
             switch (state, event) {
             case (_, .onAppear):
@@ -67,10 +71,13 @@ extension MenuBarView {
                 } else {
                     await startRecording()
                 }
+
             case (_, .onDisappear):
                 pauseRecording()
+
             case (_, .transcribing):
                 self.state = .transcribing
+
             case (_, .onFinishedTranscribing):
                 if let userInput {
                     self.state = .processing
@@ -78,16 +85,18 @@ extension MenuBarView {
                 } else {
                     self.state = .idle
                 }
+
             case (_, .onFinishedProcessing):
                 self.state = .idle
+
             case (_, .onError(let errorMessage)):
                 self.state = .error(errorMessage)
+
             case (_, .onQuit):
                 stopRecording()
                 await stopTranscribing()
                 self.state = .idle
             }
-            
         }
 
         private func setupAudioRecording() async {
@@ -128,13 +137,15 @@ extension MenuBarView {
                         case .filtered:
                             // self.state = .idle
                             break
+
                         case .transcribed(let result, let isFinished):
                             if self.userInput == nil || self.shouldWipeUserInput {
                                 self.userInput = TranscriptionModel(id: UUID(), isFinal: false)
                                 self.shouldWipeUserInput = false
                             }
-                            
+
                             self.userInput?.updateContent(with: result, isFinal: isFinished)
+
                             if isFinished {
                                 await self.handleEvent(.onFinishedTranscribing)
                             } else {
@@ -142,13 +153,12 @@ extension MenuBarView {
                             }
                         }
                     }
-                    
                 }
             } catch {
                 await handleEvent(.onError(error.localizedDescription))
             }
         }
-        
+
         private func stopTranscribing() async {
             if let task = transcriptionObservationTask {
                 task.cancel()
@@ -156,21 +166,21 @@ extension MenuBarView {
             }
             await transcriptionManager.stopTranscription()
         }
-        
+
         private func pauseRecording() {
             audioManager.pauseAudioStream()
         }
-        
+
         private func stopRecording() {
             audioManager.stopAudioStream()
         }
-        
+
         private func generateResponse(for interactionContent: TranscriptionModel) async {
             do {
                 let response = try await generationManager.generateOutput(for: interactionContent.displayContent)
-                
+
                 await handleEvent(.onFinishedProcessing)
-                
+
                 var content = GenerationModel(id: UUID(), isFinal: true)
                 content.updateContent(with: response, isFinal: true)
                 systemResponse = content

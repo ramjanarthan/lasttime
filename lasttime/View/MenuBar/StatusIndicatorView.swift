@@ -6,13 +6,21 @@
 //
 
 import SwiftUI
+import AppKit
+import SwiftUI
+import AppKit
 
 struct StatusIndicatorView: View {
     let state: AudioAgentState
 
-    @State private var fromState: AudioAgentState = .idle
-    @State private var toState: AudioAgentState = .idle
-    @State private var transitionProgress: CGFloat = 1.0
+    @State private var targetState: AudioAgentState = .idle
+
+    @State private var transitionStart: Date?
+    @State private var transitionDuration: TimeInterval = 0.0
+
+    @State private var frozenFromPositions: [CGPoint] = Array(repeating: .zero, count: 5)
+    @State private var frozenFromColor: Color = .secondary
+    @State private var lastSampleTime: Date = .now
 
     private let dotCount = 5
     private let dotSize: CGFloat = 4
@@ -22,97 +30,165 @@ struct StatusIndicatorView: View {
 
     var body: some View {
         TimelineView(.animation(minimumInterval: 1.0 / 60.0)) { timeline in
+            let now = timeline.date
+
             Canvas { context, size in
                 let centerX = size.width / 2
                 let centerY = size.height / 2
-                let phase = CGFloat(timeline.date.timeIntervalSinceReferenceDate)
+                let phase = CGFloat(now.timeIntervalSinceReferenceDate)
+                let progress = transitionProgress(at: now)
 
                 for i in 0..<dotCount {
-                    let fromPosition = dotPosition(
-                        for: fromState,
+                    let target = targetPosition(
+                        for: targetState,
                         index: i,
                         centerX: centerX,
                         centerY: centerY,
                         phase: phase
-                    )
-                    let toPosition = dotPosition(
-                        for: toState,
-                        index: i,
-                        centerX: centerX,
-                        centerY: centerY,
-                        phase: phase
-                    )
-                    let position = CGPoint(
-                        x: fromPosition.x + (toPosition.x - fromPosition.x) * transitionProgress,
-                        y: fromPosition.y + (toPosition.y - fromPosition.y) * transitionProgress
                     )
 
-                    let dotRect = CGRect(
+                    let position = lerp(frozenFromPositions[i], target, progress)
+
+                    let rect = CGRect(
                         x: position.x - dotSize / 2,
                         y: position.y - dotSize / 2,
                         width: dotSize,
                         height: dotSize
                     )
-                    let color = mixedColor(progress: transitionProgress)
+
                     context.fill(
-                        Circle().path(in: dotRect),
-                        with: .color(color)
+                        Circle().path(in: rect),
+                        with: .color(interpolatedColor(progress: progress))
                     )
                 }
             }
-        }
-        .frame(width: indicatorWidth, height: indicatorHeight)
-        .onChange(of: state) { _, newState in
-            guard toState != newState else { return }
-            fromState = toState
-            toState = newState
-            transitionProgress = 0
-            withAnimation(.smooth(duration: 2)) {
-                transitionProgress = 1
+            .onAppear {
+                initializeIfNeeded(at: now)
+                lastSampleTime = now
+            }
+            .onChange(of: now) { _, newNow in
+                lastSampleTime = newNow
             }
         }
+        .frame(width: indicatorWidth, height: indicatorHeight)
         .onAppear {
-            fromState = state
-            toState = state
+            targetState = state
+        }
+        .onChange(of: state) { _, newState in
+            guard newState != targetState else { return }
+
+            // Capture the exact currently rendered geometry as the new transition's start.
+            let now = Date()
+            let size = CGSize(width: indicatorWidth, height: indicatorHeight)
+            let centerX = size.width / 2
+            let centerY = size.height / 2
+            let phase = CGFloat(now.timeIntervalSinceReferenceDate)
+            let currentProgress = transitionProgress(at: now)
+
+            var currentPositions: [CGPoint] = []
+            currentPositions.reserveCapacity(dotCount)
+
+            for i in 0..<dotCount {
+                let currentTarget = targetPosition(
+                    for: targetState,
+                    index: i,
+                    centerX: centerX,
+                    centerY: centerY,
+                    phase: phase
+                )
+                let currentRendered = lerp(frozenFromPositions[i], currentTarget, currentProgress)
+                currentPositions.append(currentRendered)
+            }
+
+            frozenFromPositions = currentPositions
+            frozenFromColor = interpolatedColor(progress: currentProgress)
+
+            targetState = newState
+            transitionStart = now
+            transitionDuration = duration(to: newState)
         }
     }
 
-    // MARK: - Dot Positioning per State
+    // MARK: - Init
 
-    private func dotPosition(
+    private func initializeIfNeeded(at now: Date) {
+        if frozenFromPositions.allSatisfy({ $0 == .zero }) {
+            let centerX = indicatorWidth / 2
+            let centerY = indicatorHeight / 2
+            let phase = CGFloat(now.timeIntervalSinceReferenceDate)
+
+            frozenFromPositions = (0..<dotCount).map { i in
+                targetPosition(
+                    for: state,
+                    index: i,
+                    centerX: centerX,
+                    centerY: centerY,
+                    phase: phase
+                )
+            }
+
+            frozenFromColor = dotColor(for: state)
+            targetState = state
+            transitionStart = nil
+            transitionDuration = 0
+        }
+    }
+
+    // MARK: - Transition Progress
+
+    private func transitionProgress(at now: Date) -> CGFloat {
+        guard let transitionStart, transitionDuration > 0 else { return 1 }
+
+        let elapsed = now.timeIntervalSince(transitionStart)
+        if elapsed >= transitionDuration {
+            return 1
+        }
+
+        let raw = CGFloat(elapsed / transitionDuration)
+        return smoothstep(raw)
+    }
+
+    // MARK: - Target Motion Fields
+
+    private func targetPosition(
         for state: AudioAgentState,
         index: Int,
         centerX: CGFloat,
         centerY: CGFloat,
         phase: CGFloat
     ) -> CGPoint {
-        let totalWidth = CGFloat(dotCount - 1) * spacing
-        let startX = centerX - totalWidth / 2
-        let baseX = startX + CGFloat(index) * spacing
-
         switch state {
         case .idle:
-            let frequency: CGFloat = 6.4
-            let wavePhase = phase * frequency + CGFloat(index) * .pi * 0.55
-            let amplitude: CGFloat = 1
-            let yOffset = sin(wavePhase) * amplitude
-            return CGPoint(x: baseX, y: centerY + yOffset)
+            return wavePosition(
+                amplitude: 1.0,
+                frequency: 6.4,
+                drift: 0.2,
+                index: index,
+                centerX: centerX,
+                centerY: centerY,
+                phase: phase
+            )
 
         case .transcribing:
-            let frequency: CGFloat = 6.4
-            let wavePhase = phase * frequency + CGFloat(index) * .pi * 0.55
-            let amplitude: CGFloat = 4
-            let yOffset = sin(wavePhase) * amplitude
-            return CGPoint(x: baseX, y: centerY + yOffset)
+            return wavePosition(
+                amplitude: 4.0,
+                frequency: 10.2,
+                drift: 0.9,
+                index: index,
+                centerX: centerX,
+                centerY: centerY,
+                phase: phase
+            )
 
         case .processing:
-            let angularSpeed: CGFloat = 2
-            let baseAngle = phase * angularSpeed
-            let angleForDot = baseAngle + (CGFloat(index) * (2 * .pi / CGFloat(dotCount)))
-            let radius: CGFloat = 8
-            let x = centerX + cos(angleForDot) * radius
-            let y = centerY + sin(angleForDot) * radius
-            return CGPoint(x: x, y: y)
+            return circlePosition(
+                index: index,
+                centerX: centerX,
+                centerY: centerY,
+                phase: phase,
+                radius: 8,
+                angularSpeed: 2.2
+            )
 
         case .responding:
             return checkmarkPositions(centerX: centerX, centerY: centerY)[index]
@@ -122,9 +198,43 @@ struct StatusIndicatorView: View {
         }
     }
 
-    // MARK: - Shape Helpers
+    private func wavePosition(
+        amplitude: CGFloat,
+        frequency: CGFloat,
+        drift: CGFloat,
+        index: Int,
+        centerX: CGFloat,
+        centerY: CGFloat,
+        phase: CGFloat
+    ) -> CGPoint {
+        let totalWidth = CGFloat(dotCount - 1) * spacing
+        let startX = centerX - totalWidth / 2
+        let baseX = startX + CGFloat(index) * spacing
 
-    /// Returns 5 points arranged as a checkmark ✓
+        let wavePhase = phase * frequency + CGFloat(index) * .pi * 0.55
+        let x = baseX + cos(wavePhase) * drift
+        let y = centerY + sin(wavePhase) * amplitude
+
+        return CGPoint(x: x, y: y)
+    }
+
+    private func circlePosition(
+        index: Int,
+        centerX: CGFloat,
+        centerY: CGFloat,
+        phase: CGFloat,
+        radius: CGFloat,
+        angularSpeed: CGFloat
+    ) -> CGPoint {
+        let angle = phase * angularSpeed + CGFloat(index) * (2 * .pi / CGFloat(dotCount))
+        return CGPoint(
+            x: centerX + cos(angle) * radius,
+            y: centerY + sin(angle) * radius
+        )
+    }
+
+    // MARK: - Shapes
+
     private func checkmarkPositions(centerX: CGFloat, centerY: CGFloat) -> [CGPoint] {
         let points: [(CGFloat, CGFloat)] = [
             (-13, -1),
@@ -138,7 +248,6 @@ struct StatusIndicatorView: View {
         }
     }
 
-    /// Returns 5 points arranged as the bottom half of a frown ⌢
     private func frownPositions(centerX: CGFloat, centerY: CGFloat) -> [CGPoint] {
         let radius: CGFloat = 12
         let points: [CGFloat] = [0.0, 0.25, 0.5, 0.75, 1.0]
@@ -151,7 +260,8 @@ struct StatusIndicatorView: View {
         }
     }
 
-    // MARK: - Dot Color
+    // MARK: - Color
+
     private func dotColor(for state: AudioAgentState) -> Color {
         switch state {
         case .idle:
@@ -167,12 +277,41 @@ struct StatusIndicatorView: View {
         }
     }
 
-    private func mixedColor(progress: CGFloat) -> Color {
+    private func interpolatedColor(progress: CGFloat) -> Color {
         Color.mix(
-            from: dotColor(for: fromState),
-            to: dotColor(for: toState),
+            from: frozenFromColor,
+            to: dotColor(for: targetState),
             progress: progress
         )
+    }
+
+    // MARK: - Timing
+
+    private func duration(to state: AudioAgentState) -> TimeInterval {
+        switch state {
+        case .transcribing:
+            return 0.55
+        case .processing:
+            return 0.9
+        case .idle:
+            return 0.9
+        case .responding, .error:
+            return 0.7
+        }
+    }
+
+    // MARK: - Math
+
+    private func lerp(_ a: CGPoint, _ b: CGPoint, _ t: CGFloat) -> CGPoint {
+        CGPoint(
+            x: a.x + (b.x - a.x) * t,
+            y: a.y + (b.y - a.y) * t
+        )
+    }
+
+    private func smoothstep(_ t: CGFloat) -> CGFloat {
+        let x = min(max(t, 0), 1)
+        return x * x * (3 - 2 * x)
     }
 }
 

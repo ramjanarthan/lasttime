@@ -10,13 +10,17 @@ import SwiftUI
 struct MenuBarView: View {
     private let panelWidth: CGFloat = 240
     
-    @State var viewModel: ViewModel
-    
+    @StateObject private var viewModel: ViewModel
+
     init(container: AppContainer) {
-        viewModel = ViewModel(audioManager: container.audioManager,
-                              transcriptionManager: container.transcriptionManager,
-                              memoryManager: container.memoryManager,
-                              generationManager: container.generationManager)
+        _viewModel = StateObject(
+            wrappedValue: ViewModel(
+                audioManager: container.audioManager,
+                transcriptionManager: container.transcriptionManager,
+                memoryManager: container.memoryManager,
+                generationManager: container.generationManager
+            )
+        )
     }
 
     var body: some View {
@@ -33,7 +37,6 @@ struct MenuBarView: View {
 
             Divider()
 
-            // ── Quit Row ──
             MenuItemRow(title: "Quit LastTime", shortcut: "⌘Q") {
                 Task {
                     await viewModel.handleEvent(.onQuit)
@@ -58,7 +61,6 @@ struct MenuBarView: View {
         }
     }
 
-    // MARK: - Subviews
     private var userInputPanel: some View {
         Text(viewModel.userInput?.displayContent ?? " ")
             .font(.system(.body, design: .rounded))
@@ -77,7 +79,6 @@ struct MenuBarView: View {
 
     private var systemResponsePanel: some View {
         Text(viewModel.systemResponse?.displayContent ?? "")
-            
             .font(.system(.body, design: .rounded))
             .frame(width: panelWidth, alignment: .leading)
             .frame(minHeight: 64, alignment: .topLeading)
