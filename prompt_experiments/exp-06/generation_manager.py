@@ -48,24 +48,24 @@ class GenerationManager:
         prompt = self._build_prompt(self.query_prompt, cleaned)
         return await session.respond(prompt, generating=QuestionClassification)
 
-    async def classify_input(self, text: str) -> "ClassificationDiagnostics":
-        memory_result = await self.classify_as_memory(text)
-        question_result = await self.classify_as_query(text)
+    async def classify_input(self, text: str) -> UserQueryClassification:
+        try:
+            memory_result = await self.classify_as_memory(text)
+            question_result = await self.classify_as_query(text)
+        except Exception as e:
+            print(f"Error occurred while classifying input: {e}")
+            return UserQueryClassification.invalid()
 
-        heuristic_classification = self._heuristic_classification(text)
-        final_classification = self._choose_final_classification(
-            heuristic_classification, memory_result, question_result, text
-        )
-
-        return ClassificationDiagnostics(
-            final=final_classification,
-            memory=memory_result,
-            question=question_result,
-        )
+        if question_result.is_question:
+            question_text = question_result.question or text.strip()
+            return UserQueryClassification.query(question_text)
+        if memory_result.is_fact:
+            fact_text = memory_result.fact or text.strip()
+            return UserQueryClassification.memory(fact_text)
+        return UserQueryClassification.invalid()
 
     async def generate_output(self, text: str) -> str:
-        diagnostics = await self.classify_input(text)
-        classification = diagnostics.final
+        classification = await self.classify_input(text)
         if classification.kind == "memory":
             self.memory_store.save_memory(classification.value)
             return f"Thanks, I noted: {classification.value}"
