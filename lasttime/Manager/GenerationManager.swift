@@ -158,7 +158,7 @@ extension GenerationManager {
 
 // GENERABLES
 @Generable(description: "Classification of user input as a memory, a personal 'when' question, or neither")
-enum UserQueryClassification: CustomStringConvertible {
+enum UserQueryClassification: CustomStringConvertible, Decodable {
     case memory(String)
     case query(String)
     case invalid
@@ -184,6 +184,36 @@ enum UserQueryClassification: CustomStringConvertible {
             return "Query - {\(query)}"
         case .invalid:
             return "Invalid"
+        }
+    }
+    
+    var kind: Kind {
+        switch self {
+        case .query:
+            return .query
+        case .memory:
+            return .memory
+        case .invalid:
+            return .invalid
+        }
+    }
+}
+
+enum Kind: String, Decodable {
+    case memory
+    case query
+    case invalid
+    
+    func isComparable(to other: Kind) -> Bool {
+        switch (self, other) {
+        case (.memory, .memory):
+            return true
+        case (.query, .query):
+            return true
+        case (.invalid, .invalid):
+            return true
+        default:
+            return false
         }
     }
 }

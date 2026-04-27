@@ -1,5 +1,6 @@
 """Python mirror of the Swift generation manager for experimentation."""
 import asyncio
+from dataclasses import dataclass
 from typing import Callable, List, Optional
 import apple_fm_sdk as fm
 from inputs import *
@@ -25,7 +26,7 @@ class MemoryStore:
 
 
 class GenerationManager:
-    """Encapsulates prompt tuning & evaluation logic, currently using heuristics."""
+    """Encapsulates prompt tuning & evaluation logic relying solely on the model responses."""
 
     def __init__(
         self,
@@ -48,17 +49,28 @@ class GenerationManager:
         return await session.respond(prompt, generating=QuestionClassification)
 
     async def classify_input(self, text: str) -> UserQueryClassification:
-        memory_result = await self.classify_as_memory(text)
-        heuristic_memory_classification = self._heuristic_memory(text)
-
-        question_result = await self.classify_as_query(text)
-        heuristic_question_classification = self._heuristic_query(text)
-
-        if question_result.is_question or heuristic_question_classification.is_question:
-            return UserQueryClassification.query(question_result.question)
-        if memory_result.is_fact or heuristic_memory_classification.is_fact:
-            return UserQueryClassification.memory(memory_result.fact)
+        try:
+            cleaned = text.strip()
+            session = fm.LanguageModelSession(instructions=DEFAULT_INSTRUCTION)
+            prompt = self._build_prompt(self.query_prompt, cleaned)
+            output = await session.respond(prompt, generating=UserInputType)
+        except Exception as e:
+            print(f"Error occurred while classifying input: {e}")
+            return UserQueryClassification.invalid()
+        
+        if output == UserInputType.QUERY:
+            return UserQueryClassification.query(text.strip())
+        if output == UserInputType.MEMORY:
+            return UserQueryClassification.memory(text.strip())
         return UserQueryClassification.invalid()
+
+        # if question_result.is_question:
+        #     question_text = question_result.question or text.strip()
+        #     return UserQueryClassification.query(question_text)
+        # if memory_result.is_fact:
+        #     fact_text = memory_result.fact or text.strip()
+        #     return UserQueryClassification.memory(fact_text)
+        # return UserQueryClassification.invalid()
 
     async def generate_output(self, text: str) -> str:
         classification = await self.classify_input(text)
@@ -70,31 +82,74 @@ class GenerationManager:
             return memories[0] if memories else "I couldn't find a relevant memory for that question."
         return "This isn't a valid input type for me"
 
-    def _heuristic_memory(self, text: str) -> FactClassification:
-        lower = text.lower()
-        truthy = any(trigger in lower for trigger in ("remember", "note that", "record", "i", "my"))
-        time_tokens = ["yesterday", "today", "ago", "last", "monday", "am", "pm"]
-        has_time = any(token in lower for token in time_tokens)
-        is_question = text.endswith("?")
-        is_fact = truthy and not is_question or has_time and not is_question
-        return FactClassification(is_fact=is_fact, fact=text if is_fact else "")
-
-    def _heuristic_query(self, text: str) -> QuestionClassification:
-        lower = text.lower()
-        contains_when = "when" in lower
-        is_question = text.endswith("?")
-        personal = any(pronoun in lower for pronoun in ("i", "my", "me"))
-        if contains_when and is_question and personal:
-            return QuestionClassification(is_question=True, question=text)
-        return QuestionClassification(is_question=False, question="")
-
     def _build_prompt(self, instruction: str, text: str) -> str:
         return f"{instruction}\n------------\n{text}."
+
+    def _heuristic_classification(self, text: str) -> UserQueryClassification:
+        lower = text.lower()
+        normalized = text.strip()
+        is_question = normalized.endswith("?")
+        tokens = {word.strip(".,?!'") for word in lower.split()}
+        first_person = bool(tokens & {"i", "my", "me"})
+        memory_cues = (
+            "remember",
+            "note",
+            "record",
+            "keep in mind",
+            "remind you",
+            "just so you know",
+            "put this in memory",
+            "let me remind you",
+        )
+        time_words = {
+            "yesterday",
+            "today",
+            "ago",
+            "last",
+            "earlier",
+            "this",
+            "morning",
+            "afternoon",
+            "evening",
+            "night",
+        }
+        contains_time = bool(tokens & time_words)
+        contains_cue = any(phrase in lower for phrase in memory_cues)
+        if (contains_cue or (first_person and contains_time)) and not is_question:
+            return UserQueryClassification.memory(normalized)
+        if "when" in tokens and is_question and first_person:
+            return UserQueryClassification.query(normalized)
+        return UserQueryClassification.invalid()
+
+    def _choose_final_classification(
+        self,
+        heuristic: UserQueryClassification,
+        memory_result: FactClassification,
+        question_result: QuestionClassification,
+        text: str,
+    ) -> UserQueryClassification:
+        if heuristic.kind != "invalid":
+            return heuristic
+        if question_result.is_question:
+            question_text = question_result.question or text.strip()
+            return UserQueryClassification.query(question_text)
+        if memory_result.is_fact:
+            fact_text = memory_result.fact or text.strip()
+            return UserQueryClassification.memory(fact_text)
+        return UserQueryClassification.invalid()
+
+@dataclass
+class ClassificationDiagnostics:
+    final: UserQueryClassification
+    memory: FactClassification
+    question: QuestionClassification
+
 
 # def main() -> None:
 #     manager = GenerationManager()
 #     results = asyncio.run(manager.classify_input("When did I last go to the gym?"))
 #     print(results)
+
 
 # if __name__ == "__main__":
 #     main()

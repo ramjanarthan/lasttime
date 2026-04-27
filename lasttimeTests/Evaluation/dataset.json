@@ -1,0 +1,431 @@
+[
+  {
+    "text": "Remember that I ate a cream sandwich today at noon.",
+    "kind": "memory",
+    "canonical": "I ate a cream sandwich today at noon"
+  },
+  {
+    "text": "Can you note that I brushed my teeth at 12pm yesterday?",
+    "kind": "memory",
+    "canonical": "I brushed my teeth at 12pm yesterday"
+  },
+  {
+    "text": "Log that I went for a hike last Sunday morning.",
+    "kind": "memory",
+    "canonical": "I went for a hike last Sunday morning"
+  },
+  {
+    "text": "Please remember that I started a new book this evening.",
+    "kind": "memory",
+    "canonical": "I started a new book this evening"
+  },
+  {
+    "text": "Can you remember that I drank coffee at the new roastery on Friday?",
+    "kind": "memory",
+    "canonical": "I drank coffee at the new roastery on Friday"
+  },
+  {
+    "text": "Put this in memory: I finished the quarterly report on Thursday.",
+    "kind": "memory",
+    "canonical": "I finished the quarterly report on Thursday"
+  },
+  {
+    "text": "Can you record that I ran eight miles this morning?",
+    "kind": "memory",
+    "canonical": "I ran eight miles this morning"
+  },
+  {
+    "text": "Remember, I had dinner with Julia on Tuesday.",
+    "kind": "memory",
+    "canonical": "I had dinner with Julia on Tuesday"
+  },
+  {
+    "text": "Please note that this afternoon I replaced my laptop battery.",
+    "kind": "memory",
+    "canonical": "I replaced my laptop battery this afternoon"
+  },
+  {
+    "text": "Keep in mind that I tried the new Italian place on Thursday night.",
+    "kind": "memory",
+    "canonical": "I tried the new Italian place on Thursday night"
+  },
+  {
+    "text": "Record that I replaced the air filter this morning.",
+    "kind": "memory",
+    "canonical": "I replaced the air filter this morning"
+  },
+  {
+    "text": "Can you remember that I finished the Swift draft yesterday evening?",
+    "kind": "memory",
+    "canonical": "I finished the Swift draft yesterday evening"
+  },
+  {
+    "text": "When did I last eat a sandwich?",
+    "kind": "query",
+    "canonical": "When did I last eat a sandwich?"
+  },
+  {
+    "text": "Can you remind me when I brushed my teeth last?",
+    "kind": "query",
+    "canonical": "Can you remind me when I brushed my teeth last?"
+  },
+  {
+    "text": "When was the last time I jogged in the park?",
+    "kind": "query",
+    "canonical": "When was the last time I jogged in the park?"
+  },
+  {
+    "text": "I can’t recall—when did I take my medication yesterday?",
+    "kind": "query",
+    "canonical": "When did I take my medication yesterday?"
+  },
+  {
+    "text": "When did I go to the gym earlier this week?",
+    "kind": "query",
+    "canonical": "When did I go to the gym earlier this week?"
+  },
+  {
+    "text": "When did I drink coffee at the office?",
+    "kind": "query",
+    "canonical": "When did I drink coffee at the office?"
+  },
+  {
+    "text": "When did I last visit San Francisco?",
+    "kind": "query",
+    "canonical": "When did I last visit San Francisco?"
+  },
+  {
+    "text": "When was the last time I met with the product team?",
+    "kind": "query",
+    "canonical": "When was the last time I met with the product team?"
+  },
+  {
+    "text": "When exactly did I read the technical doc?",
+    "kind": "query",
+    "canonical": "When exactly did I read the technical doc?"
+  },
+  {
+    "text": "When did I last get a haircut?",
+    "kind": "query",
+    "canonical": "When did I last get a haircut?"
+  },
+  {
+    "text": "When did I last eat pizza",
+    "kind": "query",
+    "canonical": "When did I last eat pizza"
+  },
+  {
+    "text": "When did I last see the sunrise over the bay?",
+    "kind": "query",
+    "canonical": "When did I last see the sunrise over the bay?"
+  },
+  {
+    "text": "Could you tell me when I previously visited the office?",
+    "kind": "query",
+    "canonical": "Could you tell me when I previously visited the office?"
+  },
+  {
+    "text": "Do you remember when I last paid my license renewal?",
+    "kind": "query",
+    "canonical": "Do you remember when I last paid my license renewal?"
+  },
+  {
+    "text": "What is the capital of England?",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "I am thinking about lunch.",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "How did the meeting go?",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "When will we go on vacation?",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "Where did I leave the keys?",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "I am hungry and want to eat.",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "Tell me when to leave.",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "When was the moon landing?",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "When is the first day of spring?",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "This is the time when we celebrate the solstice.",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "Tell me a fact about the moon.",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "When should I plan to refuel my car next month?",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "Please make a note that I watered the indoor plants today.",
+    "kind": "memory",
+    "canonical": "I watered the indoor plants today"
+  },
+  {
+    "text": "Log that I gave the dog her flea medication this morning.",
+    "kind": "memory",
+    "canonical": "I gave the dog her flea medication this morning"
+  },
+  {
+    "text": "Can you log that I changed the oil in the car?",
+    "kind": "memory",
+    "canonical": "I changed the oil in the car"
+  },
+  {
+    "text": "Record that I replaced the water filter in the fridge.",
+    "kind": "memory",
+    "canonical": "I replaced the water filter in the fridge"
+  },
+  {
+    "text": "Remember that I paid the electricity bill yesterday.",
+    "kind": "memory",
+    "canonical": "I paid the electricity bill yesterday"
+  },
+  {
+    "text": "Can you remember that I got my hair cut this afternoon?",
+    "kind": "memory",
+    "canonical": "I got my hair cut this afternoon"
+  },
+  {
+    "text": "Save this: I took my vitamins after breakfast.",
+    "kind": "memory",
+    "canonical": "I took my vitamins after breakfast"
+  },
+  {
+    "text": "Make sure to remember that I washed the bed sheets.",
+    "kind": "memory",
+    "canonical": "I washed the bed sheets"
+  },
+  {
+    "text": "Save that I flipped the mattress today.",
+    "kind": "memory",
+    "canonical": "I flipped the mattress today"
+  },
+  {
+    "text": "Record that I cleaned the coffee machine.",
+    "kind": "memory",
+    "canonical": "I cleaned the coffee machine"
+  },
+  {
+    "text": "Please note I backed up my Mac to the external drive.",
+    "kind": "memory",
+    "canonical": "I backed up my Mac to the external drive"
+  },
+  {
+    "text": "Save that I replaced the smoke detector batteries last night.",
+    "kind": "memory",
+    "canonical": "I replaced the smoke detector batteries last night"
+  },
+  {
+    "text": "Log that I went to the dentist for a cleaning.",
+    "kind": "memory",
+    "canonical": "I went to the dentist for a cleaning"
+  },
+  {
+    "text": "When did I last water the indoor plants?",
+    "kind": "query",
+    "canonical": "When did I last water the indoor plants?"
+  },
+  {
+    "text": "Can you tell me when I gave the dog her flea medication?",
+    "kind": "query",
+    "canonical": "Can you tell me when I gave the dog her flea medication?"
+  },
+  {
+    "text": "When did I pay the electricity bill?",
+    "kind": "query",
+    "canonical": "When did I pay the electricity bill?"
+  },
+  {
+    "text": "When did I last get a haircut?",
+    "kind": "query",
+    "canonical": "When did I last get a haircut?"
+  },
+  {
+    "text": "Can you remind me when I took my vitamins?",
+    "kind": "query",
+    "canonical": "Can you remind me when I took my vitamins?"
+  },
+  {
+    "text": "When was the last time I washed the bed sheets?",
+    "kind": "query",
+    "canonical": "When was the last time I washed the bed sheets?"
+  },
+  {
+    "text": "Do you have a record of when I flipped the mattress?",
+    "kind": "query",
+    "canonical": "Do you have a record of when I flipped the mattress?"
+  },
+  {
+    "text": "When did I last clean the coffee machine?",
+    "kind": "query",
+    "canonical": "When did I last clean the coffee machine?"
+  },
+  {
+    "text": "When did I back up my Mac to the external drive?",
+    "kind": "query",
+    "canonical": "When did I back up my Mac to the external drive?"
+  },
+  {
+    "text": "Can you tell me the last time I replaced the smoke detector batteries?",
+    "kind": "query",
+    "canonical": "Can you tell me the last time I replaced the smoke detector batteries?"
+  },
+  {
+    "text": "When was my last dentist cleaning?",
+    "kind": "query",
+    "canonical": "When was my last dentist cleaning?"
+  },
+  {
+    "text": "When did I renew my passport?",
+    "kind": "query",
+    "canonical": "When did I renew my passport?"
+  },
+  {
+    "text": "When did I last deep clean the bathroom?",
+    "kind": "query",
+    "canonical": "When did I last deep clean the bathroom?"
+  },
+  {
+    "text": "When was the last time I changed my guitar strings?",
+    "kind": "query",
+    "canonical": "When was the last time I changed my guitar strings?"
+  },
+  {
+    "text": "Do you remember when I submitted my tax return?",
+    "kind": "query",
+    "canonical": "when I submitted my tax return?"
+  },
+  {
+    "text": "When did I rotate the tires on the truck?",
+    "kind": "query",
+    "canonical": "When did I rotate the tires on the truck?"
+  },
+  {
+    "text": "When did I last clean out the gutters?",
+    "kind": "query",
+    "canonical": "When did I last clean out the gutters?"
+  },
+  {
+    "text": "Can you remind me when I defrosted the freezer?",
+    "kind": "query",
+    "canonical": "Can you remind me when I defrosted the freezer?"
+  },
+  {
+    "text": "When was the last time I washed the windows?",
+    "kind": "query",
+    "canonical": "When was the last time I washed the windows?"
+  },
+  {
+    "text": "When did I last take out the recycling?",
+    "kind": "query",
+    "canonical": "When did I last take out the recycling?"
+  },
+  {
+    "text": "How long ago did I give the cat a bath?",
+    "kind": "query",
+    "canonical": "How long ago did I give the cat a bath?"
+  },
+  {
+    "text": "When did I buy new running shoes?",
+    "kind": "query",
+    "canonical": "When did I buy new running shoes?"
+  },
+  {
+    "text": "When was the last time I changed my passwords?",
+    "kind": "query",
+    "canonical": "When was the last time I changed my passwords?"
+  },
+  {
+    "text": "When did I run a 5k?",
+    "kind": "query",
+    "canonical": "When did I run a 5k?"
+  },
+  {
+    "text": "Where did I park my car?",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "Set an alarm for 7 AM.",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "Remind me to take the chicken out of the freezer.",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "Where is my wallet?",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "What is the fastest route home?",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {  "text": "Who is the current Prime Minister of the UK?",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "I'm going to the gym in an hour.",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "What time is it right now?",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "I want to buy a new laptop next month.",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "Play some jazz music.",
+    "kind": "invalid",
+    "canonical": null
+  },
+  {
+    "text": "Are we out of coffee beans?",
+    "kind": "invalid",
+    "canonical": null
+  }
+]

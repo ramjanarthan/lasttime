@@ -24,6 +24,8 @@ class MemoryManager {
     }
     
     func getRelevantMemories(for prompt: String) -> [String] {
+//        let embedding = NLEmbedding.sentenceEmbedding(for: <#T##NLLanguage#>)
+        
         var relevantMemories: [String] = []
         
         let target_dictionary = Set(prompt.split(separator: " ").map({ x in

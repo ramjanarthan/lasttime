@@ -91,6 +91,7 @@ extension MenuBarView {
 
             case (_, .onError(let errorMessage)):
                 self.state = .error(errorMessage)
+                LLogger.shared.error("\(errorMessage)")
 
             case (_, .onQuit):
                 stopRecording()
