@@ -74,6 +74,7 @@ extension MenuBarView {
 
             case (_, .onDisappear):
                 pauseRecording()
+                memoryManager.writeToFile()
 
             case (_, .transcribing):
                 self.state = .transcribing

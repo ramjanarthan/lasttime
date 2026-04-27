@@ -10,41 +10,37 @@ import NaturalLanguage
 
 class MemoryManager {
     private var memories: [String] = []
-    
-    private let demoMemories: [String] = [
-        "I ate coffee at the Bakery on 20th street",
-        "I brushed my teeth last Tuesday",
-        "I went to the gym on monday",
-        "I walked the dog this afternoon",
-        "I bought a new set of sheets on 28th May"
-    ]
+    private var memoryToVector: [String: [Double]] = [:]
     
     init() {
-        self.memories = readFromFile() ?? demoMemories
+        self.memories = readFromFile() ?? [] // TODO: gracefully handle no memories read from file
+        prepare()
+    }
+    
+    private func prepare() {
+        guard let embeddings = NLEmbedding.sentenceEmbedding(for: .english) else {
+            return
+        }
+        
+        for memory in memories {
+            let vector = embeddings.vector(for: memory)
+            memoryToVector[memory] = vector
+        }
     }
     
     func getRelevantMemories(for prompt: String) -> [String] {
-//        let embedding = NLEmbedding.sentenceEmbedding(for: <#T##NLLanguage#>)
-        
-        var relevantMemories: [String] = []
-        
-        let target_dictionary = Set(prompt.split(separator: " ").map({ x in
-            let filtered = x.filter({ !$0.isPunctuation })
-            return filtered.lowercased()
-        }))
-        
-        for memory in memories {
-            let memory_dictionary = Set(memory.split(separator: " ").map({ x in
-                x.lowercased()
-            }))
-            
-            let intersection = memory_dictionary.intersection(target_dictionary)
-            if intersection.count > 2 {
-                relevantMemories.append(memory)
-            }
+        guard let embeddings = NLEmbedding.sentenceEmbedding(for: .english) else {
+            return []
         }
         
-        return relevantMemories
+        // For each memory, calculate distance between memory and prompt, rank by lowest to highest and return top 5
+        let relevantMemories = memories
+            .map { (memory: $0, distance: embeddings.distance(between: $0, and: prompt)) }
+            .sorted { $0.distance < $1.distance }
+            .prefix(3)
+            .map { $0.memory }
+            
+        return Array(relevantMemories)
     }
     
     func saveMemory(_ memory: String) {
