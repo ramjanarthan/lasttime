@@ -19,51 +19,17 @@ class GenerationManager {
         return SystemLanguageModel.default.availability
     }
     
-    private func classifyAsMemory(_ input: String) async throws -> FactClassification {
-        let session = LanguageModelSession(model: .default)
-        let prompt = build_prompt(prefix: GenerationManager.memoryClassificationPrompt, userInput: input)
-        let response = try await session.respond(to: prompt, generating: FactClassification.self)
-        return response.content
-    }
-    
-    private func classifyAsQuery(_ input: String) async throws -> QuestionClassification {
-        let session = LanguageModelSession(model: .default)
-        let prompt = build_prompt(prefix: GenerationManager.queryClassificationPrompt, userInput: input)
-        let response = try await session.respond(to: prompt, generating: QuestionClassification.self)
-        
-        let containsWhen = input.lowercased().contains("when")
-        if containsWhen, response.content.isQuestion {
-            return QuestionClassification(isQuestion: true, question: response.content.question, confidence_score: response.content.confidence_score)
-        } else {
-            return QuestionClassification(isQuestion: false, question: "", confidence_score: 0)
-        }
-    }
-    
-    private func build_prompt(prefix: String, userInput: String) -> Prompt {
-        return Prompt {
-            prefix
-            "------------"
-            userInput
-        }
-    }
-    
-    func classifiyInput(for input: String) async -> UserQueryClassification {
+    func classifiyInput(for input: String) async -> UserIntentClassifiction {
         do {
-            let memoryClassification = try await classifyAsMemory(input)
-            let whenQuestionClassification = try await classifyAsQuery(input)
-            
-            print("memory: \(memoryClassification), when: \(whenQuestionClassification)")
-
-            
-            if whenQuestionClassification.isQuestion {
-                return .query(whenQuestionClassification.question)
-            } else if memoryClassification.isFact {
-                return .memory(memoryClassification.fact)
-            } else {
-                return .invalid
+            let session = LanguageModelSession(instructions: GenerationManager.intentClassificationInstructions)
+            let prompt = Prompt {
+                GenerationManager.intentClassificationPromptPrefix
+                input
             }
+            async let response = session.respond(to: prompt, generating: UserIntentClassifiction.self)
+            return try await response.content
         } catch {
-            return .invalid
+            return UserIntentClassifiction(reason: "", conciseForm: "", intent: .unsupported)
         }
     }
     
@@ -72,173 +38,115 @@ class GenerationManager {
        
         LLogger.shared.debug("Classification: - \(response)")
         
-        switch response {
-        case .memory(let memory):
-            memoryManager.saveMemory(memory)
-            let session = LanguageModelSession(model: .default, instructions: GenerationManager.responseInstructions)
-            let prompt = build_prompt(prefix: GenerationManager.memoryResponsePrompt, userInput: memory)
+        switch response.intent {
+        case .storeFact:
+            memoryManager.saveMemory(response.conciseForm)
+            let session = LanguageModelSession(model: .default, instructions: GenerationManager.responseGenerationInstructions)
+            let prompt = Prompt {
+                GenerationManager.responseGenerationPromptPrefix
+                response.intent
+                "-----------"
+                input
+            }
             let response = try await session.respond(to: prompt)
             return response.content
-        case .query(let query):
-            let valid_memories = memoryManager.getRelevantMemories(for: query)
+        case .recallFact:
+            let valid_memories = memoryManager.getRelevantMemories(for: response.conciseForm)
             if let memory = valid_memories.first {
                 print("The relevant memory is: \(memory)")
                 
                 let prompt = Prompt {
-                    GenerationManager.queryResponsePrompt
+                    GenerationManager.responseGenerationPromptPrefix
+                    response.intent
                     "-----------"
-                    "\(query)"
+                    response.conciseForm
                     "-----------"
-                    "\(memory)"
+                    memory
                 }
                 
-                let session = LanguageModelSession(model: .default, instructions: GenerationManager.responseInstructions)
+                let session = LanguageModelSession(model: .default, instructions: GenerationManager.responseGenerationInstructions)
                 let response = try await session.respond(to: prompt)
                 return response.content
             } else {
                 return "I couldn't find a relevant memory for that question."
             }
-        case .invalid:
-            return "This isn't a valid input type for me"
+        case .unsupported:
+            let session = LanguageModelSession(model: .default, instructions: GenerationManager.responseGenerationInstructions)
+            let prompt = Prompt {
+                GenerationManager.responseGenerationPromptPrefix
+                response.intent
+            }
+            let response = try await session.respond(to: prompt)
+            return response.content
         }
     }
 }
 
 // PROMPTs
 extension GenerationManager {
-    static let whenQuestionClassificationInstruction: String = "You are a careful classifier that labels inputs as personal 'when' questions only when the sentence ends with a question mark, mentions the user, and is about when they last did something. Sentences that start with memory cues or lack a question mark must return is_question = false with a confidence_score below 60. If the checklist is satisfied, set is_question = true and give a confidence_score of 90 or higher (threshold is 60)."
+    static let intentClassificationInstructions = """
+        You are a very accurate intent classification system. Your task is to analyse a given input and classify its intent. The supported intent
+        is "storeFact" and "recallFact". You are aiming to help the user remember important facts about themselves, and help them recall this at a later time. 
+        
+        The "storeFact" intent is for statements with clear intent to store information about the user. Statements usually fulfill these criteria:
+            1. The sentence is first-person and describes something the user already did or experienced in the past.
+            2. It contains explicit memory cues such as "remember", "record", "log" or "note", and may sometimes include polite prefixes like "please" and "can you"? 
+            3. It is not a general knowledge statement.
+        
+        The "recallFact" intent is for statements with clear intent to recall information about the user. Statements usually fulfill these criteria:
+            1. The sentence is clearly a question about something specific to the user that occured in the past
+            2. It mentions the user (I/my/me) and asks with timing words such as when, last, previously, earlier, or ago.
+            3. It is not about general knowledge
+        """
+
+    static let intentClassificationPromptPrefix = """
+        Here are examples of statements with intent to store a user fact:
+        - Log that I went for a hike last Sunday morning
+        - Remember that I ate a cream sandwich today
+        - Can you remember that I finished the Swift draft yesterday evening?
+        
+        Here are examples of statements with intent to recall a user fact:
+        - When did I last eat a sandwich?
+        - When did I last visit San Francisco?
+        
+        Here is the user input to classify:
+        """
     
-    static let memoryClassificationInstruction: String = "You are a careful classifier that labels inputs as personal facts only when the sentence describes a discrete thing the user personally did or experienced in the past and has clear timing or memory cues. Explicit memory prompts (remember, note, record, keep in mind) should return is_fact = true even if they mention question words. Always supply a confidence_score between 0 and 100: yield 90+ whenever you are certain (the decision threshold is 60), and keep it below 60 when the evidence is missing or contradictory."
-    
-    static let responseInstructions: String = "You are a helpful app that lets users remember things about themselves. Generate text that is factual, respectful, and appropriate for a casual conversation in a curt, concise tone. Never make up any details, and never answer questions that aren't based on the user's past experiences."
-    
-    static let memoryClassificationPrompt = """
-    Classify this sentence as a fact about the user.
+    static let responseGenerationInstructions = """
+        You are a very helpful macOS application that helps users store and recall useful fact about themselves. Don't be too chatty, and maintain a friendly, concise tone in your response. Your task is to generate useful responses to the user, based on the action just carried out by the app. There are three types of actions that can be carried: "storeFact", "recallFact" and "unsupported". 
+        
+        The "storeFact" action means that the application just saved information from the user, and you should provide a message to acknowledge the same. Some examples include "Sure thing, I've noted that .." or "I've saved that .." followed by the information.
+        
+        The "recallFact" action means that the application just retrieved some information based on a user query. Based on the retrieved information and the user's query, provide a message that answers the user's query. For example, if the user asked "When did I last eat a fruit?" and the retrieved information is "Remember that I ate a banana on 27th April 2026", the response is "You last ate a banana on 27th April 2026". Always answer as though you are addressing the user directly.
+        
+        If the user action was "unsupported", provide a simple message to intimate that this was not supported. Some examples are "Sorry, I can't help with that" or "That is an unsupported input for me".
+        """
 
-    Return is_fact = true only when all of the following are satisfied:
-    1. The sentence is first-person and describes something the user already did or experienced in the past.
-    2. It contains explicit timing or memory cues such as yesterday, this morning, last night, remember, record, note, or keep in mind.
-    3. It is not presented as a question, future plan, speculation, or general knowledge statement.
-    4. Sentences that start with question words (when, where, how) but have no question mark should still be treated as memories when they clearly describe a past event.
-
-    Examples:
-    - "Remember that I replaced my laptop battery this afternoon." -> is_fact true
-    - "When did I last go to the gym?" -> is_fact false
-
-    Confidence: set confidence_score to a whole number between 0 and 100; use 90 or higher when you confidently meet all criteria because the decision threshold is 60, and use values around 40 when you are unsure or the signal is weak.
-
-    When is_fact = true, set fact to the cleaned memory text and assign a confidence_score of 90+; when false, leave fact empty and keep confidence below 60.
-    """
-    
-    static let queryClassificationPrompt = """
-    Classify this sentence as a personal question about when the user last did something.
-
-    Return is_question = true only when all of the following are satisfied:
-    1. The sentence is clearly a question and ends with a question mark (if there is no '?', return false regardless of other words).
-    2. It mentions the user (I/my/me) and asks with timing words such as when, last, previously, earlier, or ago.
-    3. It is not about future planning, general knowledge, or instructions to remember something (remember, note, record, keep in mind).
-
-    Examples:
-    - "When did I last eat a sandwich?" -> is_question true
-    - "Note that I brushed my teeth at 12pm yesterday." -> is_question false
-
-    Confidence: set confidence_score to a whole number between 0 and 100; use 90 or higher when you clearly satisfy the checklist, because the decision threshold is 60, and values near 40 when the input fails the guidelines.
-
-    When is_question = true, set question to the canonical question text and return a confidence_score of 90+; otherwise return an empty string and confidence below 60.
-    """
-    
-    static let memoryResponsePrompt = """
-    The user has just provided a memory that was saved. Generate a simple response to acknowledge that this action has been carried out.    
-    """
-    
-    static let queryResponsePrompt = """
-    The user has just provided a question about a fact that they previously saved. Take a good look at the question the user asked, and the relevant memory retrieved from the store. Generate a simple response to the user to provide the answer to the question they are looking for. Do not answer in first person based on the memory, since it is from the perspective of the user. Here is the question that the user asked, followed by the memory that was retrieved:    
-    """
+    static let responseGenerationPromptPrefix = """
+        Here is the action, and the relevant input:
+        """
 }
 
-// GENERABLES
-@Generable(description: "Classification of user input as a memory, a personal 'when' question, or neither")
-enum UserQueryClassification: CustomStringConvertible, Decodable {
-    case memory(String)
-    case query(String)
-    case invalid
-    
-    func isComparable(to other: UserQueryClassification) -> Bool {
-        switch (self, other) {
-        case (.memory(let _), .memory(let _)):
-            return true
-        case (.query, .query):
-            return true
-        case (.invalid, .invalid):
-            return true
-        default:
-            return false
-        }
-    }
+@Generable
+struct UserIntentClassifiction: CustomStringConvertible {
+    @Guide(description: "Reasoning for user intent classification")
+    let reason: String
+
+    @Guide(description: "Relevant substring containing key information")
+    let conciseForm: String
+
+    @Guide(description: "Intent of user command")
+    let intent: UserIntent
     
     var description: String {
-        switch self {
-        case .memory(let memory):
-            return "Memory - {\(memory)}"
-        case .query(let query):
-            return "Query - {\(query)}"
-        case .invalid:
-            return "Invalid"
-        }
-    }
-    
-    var kind: Kind {
-        switch self {
-        case .query:
-            return .query
-        case .memory:
-            return .memory
-        case .invalid:
-            return .invalid
-        }
+        return "Intent: \(intent), Reason: \(reason), conciseForm: \(conciseForm)"
     }
 }
 
-enum Kind: String, Decodable {
-    case memory
-    case query
-    case invalid
-    
-    func isComparable(to other: Kind) -> Bool {
-        switch (self, other) {
-        case (.memory, .memory):
-            return true
-        case (.query, .query):
-            return true
-        case (.invalid, .invalid):
-            return true
-        default:
-            return false
-        }
-    }
+@Generable
+enum UserIntent: Decodable, Equatable {
+    case storeFact
+    case recallFact
+    case unsupported
 }
 
-@Generable(description: "Classification result for whether an input is a personal question about the user")
-struct QuestionClassification {
-//    @Guide(description: "Boolean for whether the question is a 'when' question")
-    let isQuestion: Bool
-    
-//    @Guide(description: "Question itself, or empty string")
-    let question: String
-    
-    let confidence_score: Int
-}
-
-@Generable(description: "Classification result for whether an input is a fact to remember")
-struct FactClassification {
-    
-//    @Guide(description: "Boolean for whether the memory is to be remembered")
-    let isFact: Bool
-    
-//    @Guide(description: "Memory itself, or empty string")
-    let fact: String
-    
-    let confidence_score: Int
-}
-
-// TOOL
