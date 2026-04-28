@@ -29,10 +29,8 @@ class TranscriptionManager {
     private let filter = AudioFilter()
     private var converter = BufferConverter()
 
-    private var recogniserTask: Task<(), Error>?
-    private var audioProcessingTask: Task<(), Error>?
-    private var analyzerTask: Task<(), Error>?
-    
+    private var transcriptionSessionTask: Task<(), Error>?
+
     private var isSetup: Bool = false
     private(set) var isTranscribing: Bool = false
     
@@ -89,23 +87,29 @@ class TranscriptionManager {
         let (transcriptionUpdateSequence, transcriptionOutputBuilder) = AsyncStream<TranscriptionUpdate>.makeStream()
         self.transcriptionOutputBuidler = transcriptionOutputBuilder
         
-        recogniserTask = Task {
-            for try await result in transcriber.results {
-                let text = String(result.text.characters)
-                transcriptionOutputBuidler?.yield(.transcribed(result: text, isFinished: result.isFinal))
+        transcriptionSessionTask = Task {
+            try await withThrowingTaskGroup { [weak self] group in
+                group.addTask {
+                    for try await result in transcriber.results {
+                        let text = String(result.text.characters)
+                        self?.transcriptionOutputBuidler?.yield(.transcribed(result: text, isFinished: result.isFinal))
+                    }
+                }
+                
+                group.addTask {
+                    for await buffer in audioBufferStream {
+                        try self?.processAudioBuffer(buffer)
+                    }
+                }
+                
+                group.addTask {
+                    try await self?.analyzer?.start(inputSequence: inputSequence)
+                }
+                
+                try await group.waitForAll()
             }
         }
-        
-        audioProcessingTask = Task {
-            for await buffer in audioBufferStream {
-                try processAudioBuffer(buffer)
-            }
-        }
-        
-        analyzerTask = Task {
-            try await analyzer?.start(inputSequence: inputSequence)
-        }
-        
+
         print("Starting transcription")
         return transcriptionUpdateSequence
     }
@@ -130,13 +134,8 @@ class TranscriptionManager {
         
         try? await analyzer?.finalizeAndFinishThroughEndOfInput()
         
-        recogniserTask?.cancel()
-        audioProcessingTask?.cancel()
-        analyzerTask?.cancel()
-        
-        recogniserTask = nil
-        audioProcessingTask = nil
-        analyzerTask = nil
+        transcriptionSessionTask?.cancel()
+        transcriptionSessionTask = nil
         
         isTranscribing = false
     }
