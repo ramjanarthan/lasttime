@@ -189,3 +189,17 @@ extension MenuBarView {
         }
     }
 }
+
+// Placeholders
+extension MenuBarView.ViewModel {
+    private static let placeholders = [
+        "Hey, when was the last time I ate popcorn?",
+        "Tell me when I last bought a new phone.",
+        "Please remember that I saw my dad today.",
+        "Can you tell me when I last went for a run?"
+    ]
+    
+    var randomPlaceholder: String {
+        Self.placeholders.randomElement() ?? "No placeholder available."
+    }
+}

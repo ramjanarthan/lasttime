@@ -62,11 +62,12 @@ struct MenuBarView: View {
     }
 
     private var userInputPanel: some View {
-        Text(viewModel.userInput?.displayContent ?? " ")
+        Text(viewModel.userInput?.displayContent ?? viewModel.randomPlaceholder)
             .font(.system(.body, design: .rounded))
             .frame(width: panelWidth, alignment: .leading)
             .frame(minHeight: 64, alignment: .topLeading)
             .padding(8)
+            .opacity(((viewModel.userInput?.displayContent.isEmpty) != nil) ? 1 : 0.2)
             .background(
                 RoundedRectangle(cornerRadius: 8, style: .continuous)
                     .fill(.ultraThinMaterial)
