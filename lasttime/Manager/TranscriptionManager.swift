@@ -16,7 +16,6 @@ class TranscriptionManager {
     }
     
     enum TranscriptionUpdate {
-        case filtered
         case transcribed(result: String, isFinished: Bool)
     }
     
@@ -26,7 +25,6 @@ class TranscriptionManager {
     private var transcriber: SpeechTranscriber?
     private var analyzer: SpeechAnalyzer?
     private var analyzerFormat: AVAudioFormat?
-    private let filter = AudioFilter()
     private var converter = BufferConverter()
 
     private var transcriptionSessionTask: Task<(), Error>?
@@ -117,11 +115,6 @@ class TranscriptionManager {
     private func processAudioBuffer(_ buffer: AVAudioPCMBuffer) throws {
         guard let transcriptionOutputBuidler, let analyzerInputBuilder, let analyzerFormat else {
             throw TranscriptionError.processingError
-        }
-        
-        guard let buffer = filter.filter(buffer) else {
-            transcriptionOutputBuidler.yield(.filtered)
-            return
         }
        
         let converted = try converter.convertBuffer(buffer, to: analyzerFormat)

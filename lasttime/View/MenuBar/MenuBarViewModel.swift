@@ -136,10 +136,6 @@ extension MenuBarView {
                     for try await event in transcriptionUpdateStream {
                         print("Event -- ", event)
                         switch event {
-                        case .filtered:
-                            // self.state = .idle
-                            break
-
                         case .transcribed(let result, let isFinished):
                             if self.userInput == nil || self.shouldWipeUserInput {
                                 self.userInput = TranscriptionModel(id: UUID(), isFinal: false)
