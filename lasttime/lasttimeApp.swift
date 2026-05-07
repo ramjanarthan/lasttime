@@ -16,7 +16,7 @@ struct lasttimeApp: App {
     }
     
     var body: some Scene {
-        MenuBarExtra("LastTime", systemImage: "person.fill.questionmark") {
+        MenuBarExtra("LastTime", image: "menuIcon") {
             if ProcessInfo.processInfo.isTesting {
                 Text("Testing")
             } else {
