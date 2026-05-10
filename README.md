@@ -7,9 +7,9 @@ You can:
 
 ### Demo
 
-<video width="30%" controls controlslist='nodownload'>
-<source src="https://github.com/ramjanarthan/lasttime/raw/main/lastTimeDemo.mp4" type="video/mp4">
-</video>
+<img src="./demo.gif" alt="App Demo" width="600"/>
+
+Full demo [here](https://github.com/ramjanarthan/lasttime/blob/main/lastTimeDemo.mp4)
 
 ### Features
 ✨ Completely on-device, your data never leaves your macbook <br>
