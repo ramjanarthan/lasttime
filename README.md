@@ -7,8 +7,9 @@ You can:
 
 ### Demo
 
-[![Demo Video](https://github.com/ramjanarthan/lasttime/blob/main/thumbnail.jpg)](https://github.com/ramjanarthan/lasttime/blob/main/lastTimeDemo.mp4)
-
+<video width="100%" controls controlslist='nodownload'>
+<source src="https://github.com/ramjanarthan/lasttime/raw/main/lastTimeDemo.mp4" type="video/mp4">
+</video>
 
 ### Features
 
